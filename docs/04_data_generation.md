@@ -399,6 +399,85 @@ grouping fields.
 
 A documented fallback method for incomplete transactions must be
 evaluated before the CustomerID generation rule is approved.
+#### CustomerID Missingness and Fallback Analysis
+
+The leading primary CustomerID grouping candidate requires:
+
+`card1 + addr1 + P_emaildomain`
+
+This combination is complete for 432,668 of the 590,540 source
+transactions.
+
+A total of 157,872 transactions do not contain all three fields.
+
+The incomplete population consists of:
+
+- 63,416 transactions missing only `addr1`;
+- 92,166 transactions missing only `P_emaildomain`;
+- 2,290 transactions missing both `addr1` and `P_emaildomain`;
+- 0 transactions missing `card1`.
+
+Three weaker fallback definitions were evaluated against the established
+complete primary groups.
+
+##### card1 + addr1
+
+This fallback produced a unique match to an existing primary group for
+5,790 transactions.
+
+It produced ambiguous matches for 80,164 transactions.
+
+Therefore, `card1 + addr1` will not be used as an unconditional
+CustomerID fallback.
+
+It may be used only when the combination maps to exactly one existing
+primary customer group.
+
+
+##### card1 + P_emaildomain
+
+This fallback produced a unique match to an existing primary group for
+4,864 transactions.
+
+It produced ambiguous matches for 47,314 transactions.
+
+Therefore, `card1 + P_emaildomain` will not be used as an unconditional
+CustomerID fallback.
+
+It may be used only when it maps to exactly one existing primary
+customer group.
+
+
+##### card1
+
+Although `card1` is available for all transactions, using it alone
+produced ambiguous matches for 146,181 of the 157,872 primary-incomplete
+transactions.
+
+Therefore, `card1` alone will not be used to merge incomplete
+transactions with existing primary customer groups.
+
+
+#### CustomerID Linking Principle
+
+The CustomerID methodology will not force incomplete transactions into
+existing customer groups.
+
+A weaker source signature may link an incomplete transaction to an
+existing primary customer group only when the mapping is unique.
+
+Ambiguous mappings will not be resolved by random selection.
+
+Transactions that cannot be uniquely associated with an existing
+primary group will remain separate from those established groups until
+a documented unresolved-grouping rule is applied.
+
+The resulting CustomerID remains a project-level synthetic analytical
+identifier and must not be interpreted as the true customer identity in
+IEEE-CIS.
+
+The `isFraud` outcome is not used in primary grouping, fallback matching,
+or unresolved grouping.
 
 ### 7.2 AccountID
 
