@@ -1,0 +1,42 @@
+{
+    "dataset_structure": {
+        "transaction_rows": 590540,
+        "transaction_columns": 394,
+        "identity_rows": 144233,
+        "identity_columns": 41
+    },
+    "transaction_id_audit": {
+        "transaction_missing_ids": 0,
+        "transaction_duplicate_ids": 0,
+        "identity_missing_ids": 0,
+        "identity_duplicate_ids": 0,
+        "transactions_with_identity": 144233,
+        "transactions_without_identity": 446307,
+        "identity_coverage_percent": 24.4239,
+        "orphan_identity_records": 0
+    },
+    "fraud_outcome": {
+        "fraud_transactions": 20663,
+        "nonfraud_transactions": 569877,
+        "missing_fraud_labels": 0,
+        "fraud_rate_percent": 3.499
+    },
+    "transaction_amount": {
+        "missing_values": 0,
+        "minimum": 0.251,
+        "maximum": 31937.391,
+        "mean": 135.0272,
+        "median": 68.769,
+        "standard_deviation": 239.1625,
+        "percentile_25": 43.321,
+        "percentile_75": 125.0,
+        "percentile_95": 445.0,
+        "percentile_99": 1104.0
+    },
+    "transaction_time": {
+        "missing_values": 0,
+        "minimum_transaction_dt": 86400.0,
+        "maximum_transaction_dt": 15811131.0,
+        "original_order_is_chronological": true
+    }
+}
