@@ -1,0 +1,25 @@
+{
+    "source_transaction_rows": 590540,
+    "mapping_rows": 590540,
+    "transactions_with_device_id": 118621,
+    "transactions_without_device_id": 471919,
+    "distinct_device_ids": 58521,
+    "tests_run": 21,
+    "tests_passed": 21,
+    "tests_failed": 0,
+    "overall_status": "PASS",
+    "high_device_customer_analysis": {
+        "maximum_devices_per_customer": 448,
+        "customers_over_10_devices": 197,
+        "customers_over_25_devices": 71,
+        "customers_over_50_devices": 39,
+        "customers_over_100_devices": 21
+    },
+    "maximum_device_customer_analysis": {
+        "customer_id": "CUST_EA53CAEDF079B83E",
+        "distinct_device_ids": 448,
+        "transactions_with_device_evidence": 2703,
+        "distinct_device_type_values": 2,
+        "distinct_device_info_values": 418
+    }
+}

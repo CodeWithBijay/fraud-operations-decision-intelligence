@@ -1,0 +1,22 @@
+test_id,description,status,observed
+DID-001,Generated DeviceID mapping row count matches the source transaction count.,PASS,"source=590540, mapping=590540"
+DID-002,TransactionID is unique in the DeviceID mapping.,PASS,duplicate_transaction_ids=0
+DID-003,Every transaction retains a CustomerID.,PASS,missing_customer_ids=0
+DID-004,Every transaction records its DeviceID assignment method.,PASS,missing_device_methods=0
+DID-005,Every source TransactionID is represented exactly in the DeviceID mapping.,PASS,unmatched_transaction_ids=0
+DID-006,TransactionDT is preserved in the generated mapping.,PASS,changed_transaction_dt=0
+DID-007,Source DeviceType values are preserved without modification.,PASS,changed_device_type_values=0
+DID-008,Source DeviceInfo values are preserved without modification.,PASS,changed_device_info_values=0
+DID-009,Only documented DeviceID assignment methods are present.,PASS,unexpected_methods=[]
+DID-010,Every transaction with both DeviceType and DeviceInfo receives a DeviceID.,PASS,eligible_without_device_id=0
+DID-011,No DeviceID is generated when either required source device field is missing.,PASS,insufficient_evidence_with_device_id=0
+DID-012,Transactions with complete device evidence use CUSTOMER_NESTED_DEVICE_SIGNATURE.,PASS,incorrect_complete_evidence_methods=0
+DID-013,Transactions with incomplete device evidence use INSUFFICIENT_DEVICE_EVIDENCE.,PASS,incorrect_insufficient_evidence_methods=0
+DID-014,NULL DeviceID occurs only when source device evidence is insufficient.,PASS,unsupported_null_device_ids=0
+DID-015,Every NULL DeviceID records INSUFFICIENT_DEVICE_EVIDENCE.,PASS,incorrect_null_methods=0
+DID-016,Every generated DeviceID belongs to exactly one CustomerID.,PASS,device_ids_crossing_customer_boundary=0
+DID-017,The same CustomerID + DeviceType + DeviceInfo signature always maps to one DeviceID.,PASS,inconsistent_signatures=0
+DID-018,Each DeviceID corresponds to only one customer-device signature.,PASS,device_signature_collisions=0
+DID-019,Every generated DeviceID matches the documented deterministic hash rule.,PASS,deterministic_id_mismatches=0
+DID-020,Generated DeviceID count matches the number of transactions with complete source device evidence.,PASS,"eligible=118621, generated=118621"
+DID-021,NULL DeviceID count matches the number of transactions with incomplete device evidence.,PASS,"incomplete_evidence=471919, null_device_ids=471919"
