@@ -621,7 +621,85 @@ A customer may be associated with one or more analytical accounts.
 
 Each analytical account must belong to exactly one synthetic
 CustomerID.
+### AccountID Candidate Analysis Results
 
+Six card-based source signatures were evaluated within the already
+generated analytical CustomerID structure.
+
+The analysis showed that `card1` alone produced exactly one candidate
+account per analytical customer and therefore did not provide additional
+account-level structure beyond CustomerID.
+
+Adding `card2`, `card3`, and `card4` separately produced only limited
+additional account differentiation.
+
+The combination:
+
+`card1 + card2 + card3 + card5`
+
+provided a stronger balance between source coverage and account-level
+differentiation.
+
+The measured results for this candidate were:
+
+- complete transaction coverage: 98.1317%;
+- complete candidate rows: 579,507;
+- incomplete candidate rows: 11,033;
+- candidate analytical accounts: 90,241;
+- transactions in recurring candidate accounts: 92.4876% of complete
+  candidate transactions;
+- mean transactions per candidate account: 6.4218;
+- median transactions per candidate account: 2;
+- 95th-percentile account size: 20 transactions;
+- 99th-percentile account size: 74 transactions;
+- maximum candidate account size: 4,002 transactions;
+- customers with multiple candidate accounts: 2,726;
+- customers with multiple candidate accounts: 3.1150% of customers with
+  usable candidate information;
+- mean candidate accounts per customer: 1.0312;
+- median candidate accounts per customer: 1;
+- maximum candidate accounts per customer: 3.
+
+Adding `card4` and `card6` to create a six-field signature produced only
+limited additional differentiation while slightly reducing complete
+source coverage.
+
+Based on the current empirical analysis, the preferred AccountID source
+signature is:
+
+`CustomerID + card1 + card2 + card3 + card5`
+
+This combination will be used only as a project-level analytical account
+signature.
+
+It must not be interpreted as a verified real-world bank account
+identifier from IEEE-CIS.
+
+The current transaction's `isFraud` outcome will not be used in
+AccountID generation.
+
+
+### AccountID Missing-Field Principle
+
+The preferred analytical account signature is complete for 579,507 of
+590,540 transactions.
+
+A total of 11,033 transactions contain at least one missing value among
+the selected card fields.
+
+Incomplete transactions will not be randomly assigned to existing
+accounts.
+
+Any fallback account linkage must remain within the already assigned
+CustomerID.
+
+A fallback may reuse an existing analytical account only when the
+available source information maps unambiguously to exactly one existing
+account within that CustomerID.
+
+If a unique within-customer account relationship cannot be established,
+the transaction will receive a separate unresolved analytical AccountID
+rather than being force-linked to an existing account.
 
 ### Source Information
 
