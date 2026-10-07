@@ -180,3 +180,45 @@ AccountID remains a project-level synthetic analytical identifier.
 
 External realism of the generated account population remains a separate
 validation question and is not established by these integrity tests.
+
+## 4. MerchantID Assessment
+
+MerchantID was evaluated as a candidate synthetic entity before
+generation.
+
+The purpose of the assessment was to determine whether the available
+IEEE-CIS source variables could support a defensible persistent
+merchant-level analytical identity.
+
+Six source-informed candidate merchant signatures were evaluated.
+
+The analysis considered:
+
+- source-field missingness;
+- candidate-field coverage;
+- number of resulting merchant-like groups;
+- repeated-group behavior;
+- transactions represented by recurring groups;
+- transaction counts per candidate group;
+- unusually large candidate groups.
+
+The analysis did not identify a source-field combination that provided
+sufficient evidence for a defensible persistent MerchantID.
+
+As a result:
+
+**MerchantID generation status: DEFERRED**
+
+No transaction-to-merchant synthetic mapping was generated.
+
+Therefore, generated-data integrity validation for MerchantID is not
+applicable in the current project version.
+
+This decision prevents unsupported merchant relationships from being
+introduced solely to satisfy the original conceptual schema.
+
+Features requiring persistent merchant identity, including
+`IsFirstTimeMerchant`, are also deferred in the current version.
+
+MerchantID may be reconsidered if stronger merchant-level source
+information becomes available.
