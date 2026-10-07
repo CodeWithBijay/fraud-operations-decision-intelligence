@@ -222,3 +222,128 @@ Features requiring persistent merchant identity, including
 
 MerchantID may be reconsidered if stronger merchant-level source
 information becomes available.
+
+## DeviceID Validation
+
+DeviceID validation was performed after completion of the DeviceID
+generation process.
+
+The validation independently tested whether the generated analytical
+DeviceIDs followed the documented customer-nested device methodology.
+
+
+### Validation Scope
+
+The DeviceID validation included checks for:
+
+- source and generated mapping row-count consistency;
+- TransactionID uniqueness;
+- CustomerID completeness;
+- DeviceID assignment-method completeness;
+- source TransactionID preservation;
+- TransactionDT preservation;
+- DeviceType preservation;
+- DeviceInfo preservation;
+- permitted DeviceID assignment methods;
+- DeviceID eligibility based on source evidence;
+- prevention of DeviceID generation when source evidence is incomplete;
+- assignment-method consistency;
+- NULL DeviceID policy;
+- CustomerID boundary integrity;
+- customer-device signature consistency;
+- DeviceID signature collision checks;
+- deterministic DeviceID reproduction;
+- generated DeviceID count reconciliation;
+- NULL DeviceID count reconciliation.
+
+
+### Validation Results
+
+Source transaction rows:
+
+590,540
+
+Generated device-mapping rows:
+
+590,540
+
+Transactions with DeviceID:
+
+118,621
+
+Transactions without DeviceID:
+
+471,919
+
+Distinct analytical DeviceIDs:
+
+58,521
+
+Validation tests executed:
+
+21
+
+Validation tests passed:
+
+21
+
+Validation tests failed:
+
+0
+
+Overall validation status:
+
+**PASS**
+
+
+### Interpretation
+
+The DeviceID generation implementation passed all 21 currently defined
+integrity and methodology tests.
+
+The validation confirms that analytical DeviceIDs are generated only
+when sufficient source device evidence exists.
+
+Transactions without sufficient source device evidence retain a NULL
+DeviceID rather than receiving an invented device relationship.
+
+Generated DeviceIDs remain nested within CustomerID and follow the
+documented deterministic customer-device signature methodology.
+
+The validation result establishes internal implementation consistency.
+It does not establish that generated DeviceIDs correspond to verified
+physical devices.
+
+
+### High-Device Customer Review
+
+The validation also examined unusually large analytical device counts
+per customer.
+
+The observed maximum was 448 analytical DeviceIDs for a single
+CustomerID.
+
+The high-device analysis found:
+
+- 197 customers with more than 10 DeviceIDs;
+- 71 customers with more than 25 DeviceIDs;
+- 39 customers with more than 50 DeviceIDs;
+- 21 customers with more than 100 DeviceIDs.
+
+The analytical customer with the maximum device count had:
+
+- 448 distinct DeviceIDs;
+- 2,703 transactions with device evidence;
+- 2 distinct DeviceType values;
+- 418 distinct DeviceInfo values.
+
+The large analytical DeviceID count is therefore associated with
+substantial variation in the underlying source DeviceInfo values.
+
+This observation is recorded as a statistical-realism and
+source-fragmentation consideration rather than an integrity-validation
+failure.
+
+Additional external calibration would be required before interpreting
+these analytical DeviceIDs as realistic physical-device counts.
+``
