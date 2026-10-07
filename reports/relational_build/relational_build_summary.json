@@ -1,0 +1,34 @@
+{
+    "customer_rows": 89522,
+    "account_rows": 93424,
+    "device_rows": 58521,
+    "transaction_rows": 590540,
+    "transaction_identity_rows": 144233,
+    "lineage_rows": 590540,
+    "transaction_missing_customer_id": 0,
+    "transaction_missing_account_id": 0,
+    "transaction_missing_device_id": 471919,
+    "distinct_customers_in_transaction": 89522,
+    "distinct_accounts_in_transaction": 93424,
+    "distinct_devices_in_transaction": 58521,
+    "customer_id_method_counts": {
+        "PRIMARY": 432668,
+        "UNRESOLVED_CARD_ADDR": 86376,
+        "UNRESOLVED_CARD_EMAIL": 58552,
+        "FALLBACK_CARD_ADDR_UNIQUE": 5790,
+        "FALLBACK_CARD_EMAIL_UNIQUE": 4864,
+        "ISOLATED_WEAK_INFORMATION": 2290
+    },
+    "account_id_method_counts": {
+        "PRIMARY": 579507,
+        "UNRESOLVED_AVAILABLE_SIGNATURE": 8301,
+        "FALLBACK_CARD1_CARD3_CARD5": 2221,
+        "FALLBACK_CARD1_CARD2_CARD3": 442,
+        "FALLBACK_CARD1_CARD3": 42,
+        "FALLBACK_CARD1_CARD5": 27
+    },
+    "device_id_method_counts": {
+        "INSUFFICIENT_DEVICE_EVIDENCE": 471919,
+        "CUSTOMER_NESTED_DEVICE_SIGNATURE": 118621
+    }
+}
