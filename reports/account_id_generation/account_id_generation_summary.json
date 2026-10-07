@@ -1,0 +1,32 @@
+{
+    "transaction_rows": 590540,
+    "distinct_customer_ids": 89522,
+    "distinct_account_ids": 93424,
+    "missing_account_ids": 0,
+    "account_id_method_counts": {
+        "PRIMARY": 579507,
+        "UNRESOLVED_AVAILABLE_SIGNATURE": 8301,
+        "FALLBACK_CARD1_CARD3_CARD5": 2221,
+        "FALLBACK_CARD1_CARD2_CARD3": 442,
+        "FALLBACK_CARD1_CARD3": 42,
+        "FALLBACK_CARD1_CARD5": 27
+    },
+    "account_group_size": {
+        "minimum": 1,
+        "maximum": 4002,
+        "mean": 6.3211,
+        "median": 2.0,
+        "percentile_95": 20.0,
+        "percentile_99": 73.0
+    },
+    "accounts_per_customer": {
+        "minimum": 1,
+        "maximum": 4,
+        "mean": 1.0436,
+        "median": 1.0,
+        "percentile_95": 1.0,
+        "percentile_99": 2.0,
+        "customers_with_multiple_accounts": 3779,
+        "customers_with_multiple_accounts_percent": 4.2213
+    }
+}
