@@ -1162,6 +1162,84 @@ DeviceID is a project-level synthetic analytical identifier and must not
 be interpreted as a verified physical-device identity from IEEE-CIS.
 
 The `isFraud` outcome is not used in DeviceID generation.
+### DeviceID Generation Results
+
+The approved DeviceID methodology was executed against the complete
+transaction population.
+
+A DeviceID was generated only when both `DeviceType` and `DeviceInfo`
+were available.
+
+The generation produced:
+
+- 590,540 total transaction records;
+- 118,621 transactions with an analytical DeviceID;
+- 471,919 transactions without sufficient evidence for DeviceID;
+- DeviceID coverage of 20.0869%;
+- 58,521 distinct analytical DeviceIDs.
+
+The recorded DeviceID assignment-method counts were:
+
+- CUSTOMER_NESTED_DEVICE_SIGNATURE: 118,621 transactions;
+- INSUFFICIENT_DEVICE_EVIDENCE: 471,919 transactions.
+
+Transactions classified as INSUFFICIENT_DEVICE_EVIDENCE retain a NULL
+DeviceID.
+
+A missing DeviceID does not indicate a newly observed device. It
+indicates that the available source information is insufficient to
+construct the approved analytical device signature.
+
+
+#### Device Group Distribution
+
+For generated analytical DeviceIDs, the transaction-count distribution
+was:
+
+- minimum: 1 transaction;
+- median: 1 transaction;
+- mean: 2.027 transactions;
+- 95th percentile: 5 transactions;
+- 99th percentile: 14 transactions;
+- maximum: 1,309 transactions.
+
+
+#### Device Relationships per Customer
+
+A total of 36,196 analytical customers had sufficient source information
+for at least one DeviceID.
+
+Within this population:
+
+- minimum DeviceIDs per customer: 1;
+- median DeviceIDs per customer: 1;
+- mean DeviceIDs per customer: 1.6168;
+- 95th percentile: 3 DeviceIDs;
+- 99th percentile: 7 DeviceIDs;
+- maximum: 448 DeviceIDs;
+- customers with multiple DeviceIDs: 7,915;
+- customers with multiple DeviceIDs: 21.8671%.
+
+The observed maximum of 448 analytical DeviceIDs for one customer will
+be examined during the separate DeviceID validation phase.
+
+These statistics describe the output of the project-level analytical
+DeviceID methodology and do not establish that the resulting identifiers
+represent verified physical devices.
+
+
+### DeviceID Interpretation
+
+DeviceID is a synthetic analytical identifier nested within CustomerID.
+
+The generation process does not create DeviceID when either required
+source-device field is unavailable.
+
+The resulting NULL DeviceID values are intentional and preserve the
+limitations of the source data rather than introducing unsupported
+device relationships.
+
+The `isFraud` outcome was not used during DeviceID generation.
 
 ## 8. Variables Not Generated in the Initial Version
 
