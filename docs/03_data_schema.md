@@ -134,3 +134,128 @@ A synthetic LocationID is not generated.
 
 Existing IEEE-CIS location-related source variables such as addr1,
 addr2, dist1, and 
+
+
+## 4. Version 1 Physical Table Design
+
+The initial generated relational layer consists of six logical tables.
+
+### customer
+
+Fields:
+
+- CustomerID
+
+Primary key:
+
+- CustomerID
+
+
+### account
+
+Fields:
+
+- AccountID
+- CustomerID
+
+Primary key:
+
+- AccountID
+
+Foreign key:
+
+- CustomerID -> customer.CustomerID
+
+
+### device
+
+Fields:
+
+- DeviceID
+- CustomerID
+
+Primary key:
+
+- DeviceID
+
+Foreign key:
+
+- CustomerID -> customer.CustomerID
+
+Only transactions for which sufficient device evidence exists contribute
+to the device entity population.
+
+
+### transaction
+
+Fields include:
+
+- TransactionID
+- CustomerID
+- AccountID
+- DeviceID
+- TransactionDT
+- TransactionAmt
+- ProductCD
+- card1-card6
+- addr1-addr2
+- dist1-dist2
+- P_emaildomain
+- R_emaildomain
+- C1-C14
+- D1-D15
+- M1-M9
+- V1-V339
+- isFraud
+
+Primary key:
+
+- TransactionID
+
+Foreign keys:
+
+- CustomerID -> customer.CustomerID
+- AccountID -> account.AccountID
+- DeviceID -> device.DeviceID
+
+DeviceID is nullable because sufficient source device evidence is not
+available for every transaction.
+
+
+### transaction_identity
+
+Fields include:
+
+- TransactionID
+- id_01-id_38
+- DeviceType
+- DeviceInfo
+
+Primary key:
+
+- TransactionID
+
+Foreign key:
+
+- TransactionID -> transaction.TransactionID
+
+A transaction may have zero or one corresponding identity record.
+
+
+### transaction_entity_lineage
+
+Fields:
+
+- TransactionID
+- CustomerID
+- CustomerID_method
+- AccountID
+- AccountID_method
+- DeviceID
+- DeviceID_method
+
+This table records the provenance of synthetic analytical relationship
+assignment for each transaction.
+
+It supports traceability between source transactions and generated
+CustomerID, AccountID, and DeviceID relationships.
