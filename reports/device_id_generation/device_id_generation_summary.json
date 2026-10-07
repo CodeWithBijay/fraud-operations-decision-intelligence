@@ -1,0 +1,30 @@
+{
+    "transaction_rows": 590540,
+    "transactions_with_device_id": 118621,
+    "transactions_without_device_id": 471919,
+    "device_id_coverage_percent": 20.0869,
+    "distinct_device_ids": 58521,
+    "device_id_method_counts": {
+        "INSUFFICIENT_DEVICE_EVIDENCE": 471919,
+        "CUSTOMER_NESTED_DEVICE_SIGNATURE": 118621
+    },
+    "device_group_size": {
+        "minimum": 1,
+        "maximum": 1309,
+        "mean": 2.027,
+        "median": 1.0,
+        "percentile_95": 5.0,
+        "percentile_99": 14.0
+    },
+    "customers_with_device_id": 36196,
+    "customer_device_distribution": {
+        "minimum": 1,
+        "maximum": 448,
+        "mean": 1.6168,
+        "median": 1.0,
+        "percentile_95": 3.0,
+        "percentile_99": 7.0,
+        "customers_with_multiple_devices": 7915,
+        "customers_with_multiple_devices_percent": 21.8671
+    }
+}
