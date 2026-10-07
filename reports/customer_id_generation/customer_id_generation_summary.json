@@ -1,0 +1,21 @@
+{
+    "transaction_rows": 590540,
+    "distinct_customer_ids": 89522,
+    "missing_customer_ids": 0,
+    "customer_id_method_counts": {
+        "PRIMARY": 432668,
+        "UNRESOLVED_CARD_ADDR": 86376,
+        "UNRESOLVED_CARD_EMAIL": 58552,
+        "FALLBACK_CARD_ADDR_UNIQUE": 5790,
+        "FALLBACK_CARD_EMAIL_UNIQUE": 4864,
+        "ISOLATED_WEAK_INFORMATION": 2290
+    },
+    "customer_group_size": {
+        "minimum": 1,
+        "maximum": 4015,
+        "mean": 6.5966,
+        "median": 2.0,
+        "percentile_95": 21.0,
+        "percentile_99": 76.0
+    }
+}
