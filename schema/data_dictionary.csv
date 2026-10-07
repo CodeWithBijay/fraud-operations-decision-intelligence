@@ -1,0 +1,26 @@
+field_name,entity,provenance,status,nullable,purpose
+TransactionID,Transaction,SOURCE,Implemented,No,Unique transaction identifier from IEEE-CIS
+TransactionDT,Transaction,SOURCE,Implemented,No,Relative transaction time from IEEE-CIS
+TransactionAmt,Transaction,SOURCE,Implemented,No,Observed transaction amount
+isFraud,Transaction,SOURCE_OUTCOME,Implemented,No,Observed fraud outcome used for later model evaluation
+ProductCD,Transaction,SOURCE,Implemented,Source-dependent,Source product code
+card1,Transaction,SOURCE,Implemented,No,Masked card-related source attribute
+card2,Transaction,SOURCE,Implemented,Yes,Masked card-related source attribute
+card3,Transaction,SOURCE,Implemented,Yes,Masked card-related source attribute
+card4,Transaction,SOURCE,Implemented,Yes,Masked card-related source attribute
+card5,Transaction,SOURCE,Implemented,Yes,Masked card-related source attribute
+card6,Transaction,SOURCE,Implemented,Yes,Masked card-related source attribute
+addr1,Transaction,SOURCE,Implemented,Yes,Source address-related attribute
+addr2,Transaction,SOURCE,Implemented,Yes,Source address-related attribute
+dist1,Transaction,SOURCE,Implemented,Yes,Source distance-related attribute
+dist2,Transaction,SOURCE,Implemented,Yes,Source distance-related attribute
+P_emaildomain,Transaction,SOURCE,Implemented,Yes,Purchaser email-domain source attribute
+R_emaildomain,Transaction,SOURCE,Implemented,Yes,Recipient email-domain source attribute
+DeviceType,TransactionIdentity,SOURCE,Implemented,Yes,Source device-type information where identity data are available
+DeviceInfo,TransactionIdentity,SOURCE,Implemented,Yes,Source device information where identity data are available
+CustomerID,Customer,SYNTHETIC,Implemented,No,Project-level persistent analytical customer identifier
+AccountID,Account,SYNTHETIC,Implemented,No,Project-level analytical account identifier nested within CustomerID
+DeviceID,Device,SYNTHETIC,Implemented,Yes,Customer-nested analytical device identifier generated only when sufficient source evidence exists
+MerchantID,Merchant,SYNTHETIC,Deferred,Yes,Persistent merchant identifier deferred because source evidence was insufficient
+LocationID,Location,SYNTHETIC,Not Implemented,Yes,Separate persistent location entity not required in Version 1
+``
