@@ -1,0 +1,12 @@
+{
+    "source_transaction_rows": 590540,
+    "candidates_tested": 6,
+    "candidate_names": [
+        "productcd",
+        "productcd_r_emaildomain",
+        "productcd_p_emaildomain",
+        "productcd_r_emaildomain_addr2",
+        "productcd_p_emaildomain_addr2",
+        "productcd_r_emaildomain_m4"
+    ]
+}

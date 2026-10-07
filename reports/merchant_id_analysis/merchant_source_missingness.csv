@@ -1,0 +1,6 @@
+column,missing_count,missing_percent,unique_non_null_values
+ProductCD,0,0.0,5
+P_emaildomain,94456,15.9949,59
+R_emaildomain,453249,76.7516,60
+addr2,65706,11.1264,74
+M4,281444,47.6588,3
