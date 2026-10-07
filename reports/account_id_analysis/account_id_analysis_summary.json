@@ -1,0 +1,12 @@
+{
+    "candidates_tested": 6,
+    "source_transaction_rows": 590540,
+    "candidate_names": [
+        "card1",
+        "card1_card2",
+        "card1_card2_card3",
+        "card1_card2_card3_card4",
+        "card1_card2_card3_card5",
+        "card1_card2_card3_card4_card5_card6"
+    ]
+}
