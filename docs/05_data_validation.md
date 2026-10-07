@@ -90,3 +90,93 @@ purposes of relational and historical analysis within this project.
 
 External realism of the generated customer population is a separate
 validation question and is not established by these integrity tests.
+## 3. AccountID Validation
+
+AccountID validation was performed after completion of the AccountID
+generation process.
+
+The purpose of the validation was to verify that the generated
+analytical account identifiers follow the documented AccountID
+generation methodology and preserve the required
+Customer-to-Account-to-Transaction relationships.
+
+
+### 3.1 Validation Scope
+
+The AccountID validation checks include:
+
+- source and generated mapping row-count consistency;
+- TransactionID uniqueness;
+- CustomerID completeness;
+- AccountID completeness;
+- AccountID assignment-method completeness;
+- source TransactionID preservation;
+- TransactionDT preservation;
+- permitted AccountID assignment methods;
+- AccountID-to-CustomerID ownership consistency;
+- primary account-signature completeness;
+- primary account-signature consistency;
+- primary AccountID collision checks;
+- fallback CustomerID-boundary integrity;
+- unresolved AccountID ownership integrity;
+- incompatible AccountID-method collision checks.
+
+
+### 3.2 Validation Results
+
+Source transaction rows:
+
+590,540
+
+Generated transaction-to-account mapping rows:
+
+590,540
+
+Distinct analytical CustomerIDs:
+
+89,522
+
+Distinct analytical AccountIDs:
+
+93,424
+
+Validation tests executed:
+
+15
+
+Validation tests passed:
+
+15
+
+Validation tests failed:
+
+0
+
+Overall validation status:
+
+**PASS**
+
+
+### 3.3 Interpretation
+
+The AccountID generation process passed all 15 currently defined
+AccountID integrity tests.
+
+The generated mapping contains the same number of records as the
+original transaction population, and no AccountID validation failures
+were identified.
+
+The validation confirms internal consistency between the documented
+AccountID generation methodology and the generated analytical
+customer-account relationships.
+
+This result establishes structural and methodological validity for the
+current AccountID generation implementation.
+
+It does not establish that the generated analytical AccountIDs
+correspond to verified real-world bank accounts in IEEE-CIS.
+
+AccountID remains a project-level synthetic analytical identifier.
+
+External realism of the generated account population remains a separate
+validation question and is not established by these integrity tests.
