@@ -599,6 +599,89 @@ Every generated account must belong to a valid synthetic customer.
 
 Every transaction assigned an AccountID must reference an existing
 synthetic account.
+## AccountID Generation
+
+### AccountID Requirement
+
+**Status:** Required, methodology under evaluation
+
+**Provenance:** Synthetic analytical identifier
+
+The project schema requires an account entity between Customer and
+Transaction.
+
+A persistent AccountID is required so that transactions can support
+account-level histories in addition to customer-level histories.
+
+The intended relationship is:
+
+Customer -> Account -> Transaction
+
+A customer may be associated with one or more analytical accounts.
+
+Each analytical account must belong to exactly one synthetic
+CustomerID.
+
+
+### Source Information
+
+The IEEE-CIS transaction data contain the masked source fields:
+
+- `card1`
+- `card2`
+- `card3`
+- `card4`
+- `card5`
+- `card6`
+
+These fields will remain source variables.
+
+No individual card field will automatically be treated as the project's
+AccountID.
+
+Instead, candidate card-based signatures will be evaluated within the
+already generated CustomerID relationships to determine whether they can
+support a defensible project-level account grouping.
+
+
+### AccountID Generation Principles
+
+AccountID will not be assigned independently at random.
+
+The current transaction's `isFraud` outcome must not be used when
+constructing AccountID.
+
+AccountID generation must preserve the relationship between the
+validated analytical CustomerID and its associated transactions.
+
+Every generated AccountID must belong to exactly one synthetic
+CustomerID.
+
+The same approved customer/account source signature must receive the
+same deterministic AccountID.
+
+Candidate account signatures will be evaluated before a final AccountID
+generation rule is approved.
+
+
+### Candidate Analysis
+
+The AccountID candidate analysis will evaluate combinations of available
+card-related source fields.
+
+The analysis will examine:
+
+- candidate-field coverage;
+- missingness;
+- number of resulting account groups;
+- accounts per analytical customer;
+- transactions per account;
+- repeated account activity;
+- unusually large account groups;
+- customer-to-account consistency.
+
+The AccountID methodology will be approved only after these empirical
+checks are completed.
 
 
 ### 7.3 MerchantID
