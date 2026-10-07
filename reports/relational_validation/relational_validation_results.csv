@@ -1,0 +1,33 @@
+test_id,category,description,status,observed
+REL-PK-001,PRIMARY_KEY,Customer.CustomerID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-PK-002,PRIMARY_KEY,Account.AccountID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-PK-003,PRIMARY_KEY,Device.DeviceID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-PK-004,PRIMARY_KEY,Transaction.TransactionID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-PK-005,PRIMARY_KEY,TransactionIdentity.TransactionID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-PK-006,PRIMARY_KEY,TransactionEntityLineage.TransactionID is unique and non-null.,PASS,missing=0; duplicates=0
+REL-FK-001,FOREIGN_KEY,Every Account.CustomerID references an existing Customer.,PASS,orphan_records=0
+REL-FK-002,FOREIGN_KEY,Every Device.CustomerID references an existing Customer.,PASS,orphan_records=0
+REL-FK-003,FOREIGN_KEY,Every Transaction.CustomerID references an existing Customer.,PASS,orphan_records=0
+REL-FK-004,FOREIGN_KEY,Every Transaction.AccountID references an existing Account.,PASS,orphan_records=0
+REL-FK-005,FOREIGN_KEY,Every non-null Transaction.DeviceID references an existing Device.,PASS,orphan_records=0
+REL-FK-006,FOREIGN_KEY,Every identity record references an existing Transaction.,PASS,orphan_records=0
+REL-FK-007,FOREIGN_KEY,Every lineage record references an existing Transaction.,PASS,orphan_records=0
+REL-OWN-001,OWNERSHIP,Transaction CustomerID agrees with Account owner CustomerID.,PASS,customer_account_mismatches=0
+REL-OWN-002,OWNERSHIP,Transaction CustomerID agrees with Device owner CustomerID.,PASS,customer_device_mismatches=0
+REL-SRC-001,SOURCE_PRESERVATION,Every original TransactionID is preserved.,PASS,unmatched_transaction_ids=0
+REL-SRC-002,SOURCE_PRESERVATION,Original TransactionDT values are preserved.,PASS,changed_TransactionDT=0
+REL-SRC-003,SOURCE_PRESERVATION,Original TransactionAmt values are preserved.,PASS,changed_TransactionAmt=0
+REL-SRC-004,SOURCE_PRESERVATION,Original isFraud values are preserved.,PASS,changed_isFraud=0
+REL-ID-001,IDENTITY,Final identity row count matches the original identity row count.,PASS,source=144233; final=144233
+REL-ID-002,IDENTITY,Identity TransactionID population is preserved.,PASS,missing=0; extra=0
+REL-ID-003,IDENTITY,Original identity source values are preserved.,PASS,changed_identity_cells=0
+REL-LIN-001,LINEAGE,Every transaction has exactly one matching lineage record.,PASS,unmatched_lineage_records=0
+REL-LIN-002,LINEAGE,Transaction and lineage CustomerID values agree.,PASS,customer_id_mismatches=0
+REL-LIN-003,LINEAGE,Transaction and lineage AccountID values agree.,PASS,account_id_mismatches=0
+REL-LIN-004,LINEAGE,Transaction and lineage DeviceID values agree including NULL values.,PASS,device_id_mismatches=0
+REL-POP-001,POPULATION,Customer table population equals distinct CustomerIDs in transactions.,PASS,transaction_distinct=89522; customer_rows=89522
+REL-POP-002,POPULATION,Account table population equals distinct AccountIDs in transactions.,PASS,transaction_distinct=93424; account_rows=93424
+REL-POP-003,POPULATION,Device table population equals distinct non-null DeviceIDs in transactions.,PASS,transaction_distinct=58521; device_rows=58521
+REL-METHOD-001,LINEAGE,Every lineage record contains CustomerID_method.,PASS,missing_CustomerID_method=0
+REL-METHOD-002,LINEAGE,Every lineage record contains AccountID_method.,PASS,missing_AccountID_method=0
+REL-METHOD-003,LINEAGE,Every lineage record contains DeviceID_method.,PASS,missing_DeviceID_method=0

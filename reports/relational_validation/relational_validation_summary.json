@@ -1,0 +1,15 @@
+{
+    "customer_rows": 89522,
+    "account_rows": 93424,
+    "device_rows": 58521,
+    "transaction_rows": 590540,
+    "transaction_identity_rows": 144233,
+    "lineage_rows": 590540,
+    "transactions_missing_customer_id": 0,
+    "transactions_missing_account_id": 0,
+    "transactions_missing_device_id": 471919,
+    "tests_run": 32,
+    "tests_passed": 32,
+    "tests_failed": 0,
+    "overall_status": "PASS"
+}
