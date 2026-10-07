@@ -1,0 +1,12 @@
+test_id,description,status,observed
+CID-001,Generated mapping row count matches source transaction count.,PASS,"source=590540, mapping=590540"
+CID-002,TransactionID is unique in the CustomerID mapping.,PASS,duplicate_transaction_ids=0
+CID-003,Every transaction has a CustomerID.,PASS,missing_customer_ids=0
+CID-004,Every transaction records its CustomerID assignment method.,PASS,missing_methods=0
+CID-005,Every source TransactionID appears exactly in the generated mapping.,PASS,unmatched_transaction_ids=0
+CID-006,TransactionDT is preserved in the generated mapping.,PASS,changed_transaction_dt=0
+CID-007,Only documented CustomerID assignment methods are present.,PASS,unexpected_methods=[]
+CID-008,Each primary source signature maps to exactly one CustomerID.,PASS,inconsistent_primary_signatures=0
+CID-009,Each primary CustomerID corresponds to only one primary source signature.,PASS,primary_customer_collisions=0
+CID-010,Weak-information isolated transactions do not share CustomerIDs with each other.,PASS,duplicate_isolated_customer_ids=0
+CID-011,Unresolved or isolated CustomerIDs do not collide with incompatible assignment methods.,PASS,problematic_method_collisions=0

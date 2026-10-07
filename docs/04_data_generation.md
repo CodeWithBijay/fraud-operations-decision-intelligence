@@ -525,7 +525,60 @@ from IEEE-CIS.
 
 The `isFraud` outcome must not be used in primary grouping, fallback
 matching, unresolved grouping, or CustomerID assignment.
+#### CustomerID Generation Results
 
+The documented CustomerID methodology was executed against the complete
+source transaction population.
+
+A CustomerID was produced for all 590,540 transactions.
+
+The generation produced:
+
+- 89,522 distinct analytical CustomerIDs;
+- 0 transactions with a missing CustomerID.
+
+CustomerID assignment methods were recorded for every transaction.
+
+The observed assignment counts were:
+
+- PRIMARY: 432,668 transactions;
+- FALLBACK_CARD_ADDR_UNIQUE: 5,790 transactions;
+- FALLBACK_CARD_EMAIL_UNIQUE: 4,864 transactions;
+- UNRESOLVED_CARD_ADDR: 86,376 transactions;
+- UNRESOLVED_CARD_EMAIL: 58,552 transactions;
+- ISOLATED_WEAK_INFORMATION: 2,290 transactions.
+
+The generation process therefore preserved the distinction between
+primary source-informed grouping, unique fallback linking, unresolved
+source-informed grouping, and isolated weak-information records.
+
+No unresolved transaction was randomly assigned to an established
+customer group.
+
+The generated analytical customer-group sizes were:
+
+- minimum: 1 transaction;
+- median: 2 transactions;
+- mean: 6.5966 transactions;
+- 95th percentile: 21 transactions;
+- 99th percentile: 76 transactions;
+- maximum: 4,015 transactions.
+
+These statistics describe the output of the documented CustomerID
+generation methodology.
+
+They do not establish that the resulting customer-group distribution is
+representative of a real financial institution.
+
+The statistical realism of the generated customer population must be
+evaluated separately before making an external-realism claim.
+
+CustomerID remains a project-level synthetic analytical identifier and
+must not be interpreted as a recovered true customer identity from
+IEEE-CIS.
+
+The `isFraud` outcome was not used by the CustomerID generation
+process.
 ### 7.2 AccountID
 
 **Requirement:** Required
