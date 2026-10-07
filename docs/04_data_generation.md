@@ -1025,6 +1025,52 @@ be defined separately before generation.
 
 DeviceID generation must not use the current transaction's fraud
 outcome.
+## DeviceID Generation
+
+### DeviceID Requirement
+
+**Status:** Required, methodology under evaluation
+
+**Provenance:** Synthetic analytical identifier if source evidence supports
+persistent device relationships
+
+The project requires device-level historical context to support analysis
+of repeated and newly observed device activity.
+
+The IEEE-CIS identity dataset contains the source fields:
+
+- `DeviceType`
+- `DeviceInfo`
+
+Identity information is not available for every source transaction.
+
+The previously completed input audit identified 144,233 transactions with
+corresponding identity records out of 590,540 total transactions,
+representing 24.4239% identity coverage.
+
+DeviceType and DeviceInfo will remain source variables and will not be
+overwritten.
+
+Neither DeviceType nor DeviceInfo will automatically be interpreted as a
+persistent DeviceID.
+
+Before generating DeviceID, the available source device information will
+be audited to determine:
+
+- coverage;
+- missingness;
+- distinct source values;
+- repeated device information;
+- transaction counts associated with device information;
+- device information reuse across analytical customers;
+- whether source device information can support persistent analytical
+  device relationships.
+
+The current transaction's `isFraud` outcome must not be used when
+constructing or evaluating DeviceID.
+
+DeviceID will be generated only if the source audit supports a defensible
+device-linking methodology.
 
 
 ## 8. Variables Not Generated in the Initial Version

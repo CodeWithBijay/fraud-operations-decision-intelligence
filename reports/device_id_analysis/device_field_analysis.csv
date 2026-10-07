@@ -1,0 +1,3 @@
+field,missing_count,missing_percent,non_null_count,unique_values,repeated_values,transactions_in_repeated_values,maximum_value_frequency
+DeviceType,449730,76.1557,140810,2,2,140810,85165
+DeviceInfo,471874,79.9055,118666,1786,1346,118226,47722

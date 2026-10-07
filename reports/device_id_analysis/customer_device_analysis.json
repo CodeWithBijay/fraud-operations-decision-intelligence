@@ -1,0 +1,13 @@
+{
+    "customer_device_groups": 58521,
+    "repeated_customer_device_groups": 16427,
+    "median_transactions_per_customer_device": 1.0,
+    "percentile_95_transactions_per_customer_device": 5.0,
+    "maximum_transactions_per_customer_device": 1309,
+    "customers_with_device_information": 36196,
+    "customers_with_multiple_device_signatures": 7915,
+    "customers_with_multiple_device_signatures_percent": 21.8671,
+    "mean_device_signatures_per_customer": 1.6168,
+    "median_device_signatures_per_customer": 1.0,
+    "maximum_device_signatures_per_customer": 448
+}

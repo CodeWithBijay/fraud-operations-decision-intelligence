@@ -1,0 +1,13 @@
+{
+    "total_transactions": 590540,
+    "device_type_present": 140810,
+    "device_type_coverage_percent": 23.8443,
+    "device_info_present": 118666,
+    "device_info_coverage_percent": 20.0945,
+    "both_device_fields_present": 118621,
+    "both_device_fields_percent": 20.0869,
+    "device_type_only": 22189,
+    "device_info_only": 45,
+    "neither_device_field_present": 449685,
+    "neither_device_field_percent": 76.1481
+}

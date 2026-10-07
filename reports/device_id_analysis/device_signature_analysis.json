@@ -1,0 +1,15 @@
+{
+    "usable_transactions": 118621,
+    "device_signatures": 1937,
+    "single_transaction_signatures": 505,
+    "repeated_signatures": 1432,
+    "transactions_in_repeated_signatures": 118116,
+    "transactions_in_repeated_signatures_percent": 99.5743,
+    "median_transactions_per_signature": 4.0,
+    "mean_transactions_per_signature": 61.2395,
+    "percentile_95_signature_size": 67.0,
+    "percentile_99_signature_size": 215.4,
+    "maximum_signature_size": 47720,
+    "signatures_linked_to_one_customer": 608,
+    "signatures_linked_to_multiple_customers": 1329
+}
