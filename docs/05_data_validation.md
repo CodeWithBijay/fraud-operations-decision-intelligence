@@ -347,3 +347,164 @@ failure.
 Additional external calibration would be required before interpreting
 these analytical DeviceIDs as realistic physical-device counts.
 ``
+
+## Final Relational Dataset Validation
+
+Following entity-level generation and validation, the Version 1
+relational dataset was assembled and validated as a complete system.
+
+The final relational layer contains:
+
+- 89,522 analytical customers;
+- 93,424 analytical accounts;
+- 58,521 analytical devices;
+- 590,540 transactions;
+- 144,233 transaction-identity records;
+- 590,540 transaction-entity lineage records.
+
+CustomerID is present for every transaction.
+
+AccountID is present for every transaction.
+
+DeviceID is intentionally nullable because the documented DeviceID
+methodology generates an analytical device relationship only when
+sufficient source device evidence exists.
+
+A total of 471,919 transactions therefore retain a NULL DeviceID.
+
+
+### Relational Validation Scope
+
+The final relational validation tests covered:
+
+- primary-key integrity;
+- foreign-key integrity;
+- customer-account ownership consistency;
+- customer-device ownership consistency;
+- source transaction preservation;
+- source identity preservation;
+- transaction-to-lineage consistency;
+- entity-population consistency;
+- synthetic relationship provenance completeness.
+
+
+### Relational Validation Results
+
+Validation tests executed:
+
+32
+
+Validation tests passed:
+
+32
+
+Validation tests failed:
+
+0
+
+Overall validation status:
+
+**PASS**
+
+
+### Primary-Key Integrity
+
+The validation identified no missing or duplicate primary-key values in:
+
+- Customer.CustomerID;
+- Account.AccountID;
+- Device.DeviceID;
+- Transaction.TransactionID;
+- TransactionIdentity.TransactionID;
+- TransactionEntityLineage.TransactionID.
+
+
+### Foreign-Key Integrity
+
+The validation identified zero orphan records across the implemented
+relationships:
+
+- Account.CustomerID -> Customer.CustomerID;
+- Device.CustomerID -> Customer.CustomerID;
+- Transaction.CustomerID -> Customer.CustomerID;
+- Transaction.AccountID -> Account.AccountID;
+- non-null Transaction.DeviceID -> Device.DeviceID;
+- TransactionIdentity.TransactionID -> Transaction.TransactionID;
+- TransactionEntityLineage.TransactionID -> Transaction.TransactionID.
+
+
+### Relationship Ownership
+
+The validation identified:
+
+- 0 transaction-to-account customer ownership mismatches;
+- 0 transaction-to-device customer ownership mismatches.
+
+The analytical account and device relationships therefore remain nested
+within the appropriate CustomerID boundaries.
+
+
+### Source Transaction Preservation
+
+The final relational dataset preserved the original source transaction
+population.
+
+The validation identified:
+
+- 0 unmatched TransactionID values;
+- 0 changed TransactionDT values;
+- 0 changed TransactionAmt values;
+- 0 changed isFraud values.
+
+The synthetic relational augmentation therefore did not modify these
+audited empirical transaction fields.
+
+
+### Identity Preservation
+
+The original IEEE-CIS identity population contained 144,233 records.
+
+The final transaction_identity table also contains 144,233 records.
+
+The validation identified:
+
+- 0 missing identity TransactionID values relative to the source;
+- 0 additional identity TransactionID values;
+- 0 changed identity source cells.
+
+
+### Lineage Integrity
+
+Every transaction has exactly one corresponding
+transaction_entity_lineage record.
+
+The validation identified:
+
+- 0 CustomerID mismatches between transaction and lineage;
+- 0 AccountID mismatches between transaction and lineage;
+- 0 DeviceID mismatches between transaction and lineage, including NULL
+  device relationships.
+
+Every lineage record also contains CustomerID_method, AccountID_method,
+and DeviceID_method provenance.
+
+
+## Version 1 Validation Conclusion
+
+The Version 1 generated relational dataset passed all 32 implemented
+system-level validation tests.
+
+The dataset is therefore considered internally validated against the
+documented structural, relational, ownership, provenance, and
+source-preservation rules.
+
+This internal validation does not establish that synthetic CustomerID,
+AccountID, or DeviceID values correspond to verified real-world
+identities.
+
+It also does not establish external statistical realism for a specific
+financial institution.
+
+The validated identifiers are project-level analytical entities created
+to support the fraud-risk decision-support workflow while preserving
+the limitations and observed values of the IEEE-CIS source data.
