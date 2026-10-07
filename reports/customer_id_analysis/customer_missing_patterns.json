@@ -1,0 +1,17 @@
+{
+    "total_transactions": 590540,
+    "primary_complete_transactions": 432668,
+    "primary_incomplete_transactions": 157872,
+    "missing_card1_total": 0,
+    "missing_addr1_total": 65706,
+    "missing_p_emaildomain_total": 94456,
+    "missing_only_card1": 0,
+    "missing_only_addr1": 63416,
+    "missing_only_p_emaildomain": 92166,
+    "missing_card1_and_addr1_only": 0,
+    "missing_card1_and_p_emaildomain_only": 0,
+    "missing_addr1_and_p_emaildomain_only": 2290,
+    "missing_all_three": 0,
+    "missing_pattern_total": 157872,
+    "missing_pattern_matches_incomplete_total": true
+}

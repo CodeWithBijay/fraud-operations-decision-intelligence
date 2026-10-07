@@ -1,0 +1,4 @@
+fallback_name,fallback_columns,primary_incomplete_transactions,fallback_usable_transactions,fallback_unusable_transactions,unique_existing_group_matches,ambiguous_existing_group_matches,no_existing_group_match,unique_match_percent_of_incomplete,ambiguous_match_percent_of_incomplete,no_match_percent_of_incomplete,unusable_percent_of_incomplete,known_fallback_keys,known_unique_fallback_keys,known_ambiguous_fallback_keys
+card1_addr1,card1 + addr1,157872,92166,65706,5790,80164,6212,3.6675,50.7778,3.9348,41.6198,35546,21322,14224
+card1_p_emaildomain,card1 + P_emaildomain,157872,63416,94456,4864,47314,11238,3.081,29.9698,7.1184,59.8307,34643,25287,9356
+card1_only,card1,157872,157872,0,4851,146181,6840,3.0727,92.5946,4.3326,0.0,11606,4617,6989
