@@ -1071,7 +1071,97 @@ constructing or evaluating DeviceID.
 
 DeviceID will be generated only if the source audit supports a defensible
 device-linking methodology.
+### DeviceID Source Audit Results
 
+The DeviceID source audit evaluated DeviceType and DeviceInfo across the
+complete transaction population.
+
+The audit found:
+
+- 590,540 total transactions;
+- DeviceType available for 140,810 transactions (23.8443%);
+- DeviceInfo available for 118,666 transactions (20.0945%);
+- both DeviceType and DeviceInfo available for 118,621 transactions
+  (20.0869%);
+- neither source device field available for 449,685 transactions
+  (76.1481%).
+
+DeviceType contains only two distinct non-null values and therefore does
+not provide sufficient information to represent persistent device
+identity independently.
+
+DeviceInfo contains 1,786 distinct non-null values across 118,666
+transactions.
+
+The combined DeviceType + DeviceInfo signature produced 1,937 source
+device signatures across the 118,621 transactions for which both fields
+were available.
+
+Of these signatures:
+
+- 608 were associated with one analytical CustomerID;
+- 1,329 appeared across multiple analytical CustomerIDs.
+
+The maximum global source-device signature contained 47,720
+transactions.
+
+The combined source signature will therefore not be interpreted as a
+globally unique physical device identity.
+
+
+### Customer-Nested Device Analysis
+
+When DeviceType + DeviceInfo was evaluated within the previously
+generated CustomerID structure, the audit produced:
+
+- 58,521 customer-device groups;
+- 36,196 analytical customers with usable device information;
+- 7,915 customers with multiple source-device signatures;
+- 21.8671% of customers with usable device information having more than
+  one source-device signature;
+- mean device signatures per customer: 1.6168;
+- median device signatures per customer: 1;
+- median transactions per customer-device group: 1;
+- 95th-percentile transactions per customer-device group: 5.
+
+These results provide stronger support for customer-nested analytical
+device relationships than for globally identified physical devices.
+
+
+### DeviceID Generation Decision
+
+DeviceID generation is approved only for transactions where both
+DeviceType and DeviceInfo are available.
+
+The analytical DeviceID signature will be based on:
+
+`CustomerID + DeviceType + DeviceInfo`
+
+The same source-device signature may therefore produce different
+analytical DeviceIDs when associated with different CustomerIDs.
+
+This prevents a generic or shared source DeviceInfo value from being
+interpreted as a globally unique physical device.
+
+Transactions without both required source device fields will not receive
+an invented DeviceID.
+
+For those transactions:
+
+`DeviceID = NULL`
+
+Missing DeviceID indicates insufficient source device evidence and must
+not be interpreted as a newly observed device.
+
+The future derived feature `IsNewDevice` will only be calculated when
+sufficient device information exists. Missing device information will
+remain unknown rather than being converted to a positive new-device
+indicator.
+
+DeviceID is a project-level synthetic analytical identifier and must not
+be interpreted as a verified physical-device identity from IEEE-CIS.
+
+The `isFraud` outcome is not used in DeviceID generation.
 
 ## 8. Variables Not Generated in the Initial Version
 
