@@ -932,6 +932,71 @@ The analysis will examine:
 The final MerchantID generation rule will be documented only after the
 candidate analysis has been completed.
 
+### MerchantID Candidate Analysis Results
+
+Six source-informed MerchantID candidate signatures were evaluated using
+the complete source transaction population.
+
+The tested candidates included combinations of:
+
+- ProductCD;
+- purchaser email domain;
+- recipient email domain;
+- addr2;
+- M4.
+
+The source-field audit found:
+
+- ProductCD has 5 distinct non-null values and no missing values;
+- P_emaildomain has 15.9949% missingness;
+- R_emaildomain has 76.7516% missingness;
+- addr2 has 11.1264% missingness;
+- M4 has 47.6588% missingness and 3 distinct non-null values.
+
+ProductCD alone produced only 5 candidate groups across all 590,540
+transactions, with a maximum group size of 439,670 transactions. It was
+therefore rejected as a merchant-level analytical identifier.
+
+ProductCD + P_emaildomain provided 84.0051% complete-field coverage but
+produced only 191 candidate groups across 496,084 usable transactions.
+The largest candidate group contained 172,144 transactions.
+
+ProductCD + R_emaildomain provided only 23.2484% complete-field
+coverage.
+
+Adding addr2 increased the number of candidate groups but did not
+provide sufficient evidence that the resulting groups represent
+persistent merchant-level entities.
+
+The ProductCD + P_emaildomain + addr2 combination produced 391 candidate
+groups across 432,668 complete transactions, with a maximum group size
+of 172,006 transactions.
+
+Candidate definitions using R_emaildomain with addr2 or M4 suffered from
+low complete-field coverage.
+
+
+### MerchantID Decision
+
+No tested source-field combination provides sufficient evidence for a
+defensible persistent MerchantID in the current project version.
+
+Therefore MerchantID generation is deferred.
+
+The project will not create arbitrary merchant identities solely to
+satisfy the original conceptual schema.
+
+The current project version will preserve the available IEEE-CIS source
+fields such as ProductCD and email-domain variables for transaction-level
+analysis without presenting them as verified merchant identifiers.
+
+Because a defensible persistent merchant entity has not been
+established, merchant-history features requiring persistent merchant
+identity, including IsFirstTimeMerchant, are also deferred.
+
+MerchantID may be reconsidered in a future project version if an
+appropriate merchant-level source dataset or stronger merchant-identity
+evidence becomes available.
 
 ### 7.4 DeviceID
 
