@@ -761,6 +761,89 @@ The analysis will examine:
 The AccountID methodology will be approved only after these empirical
 checks are completed.
 
+### AccountID Generation Results
+
+The documented AccountID methodology was executed against the complete
+transaction population after CustomerID generation.
+
+The generation produced:
+
+- 590,540 transaction-to-account assignments;
+- 89,522 distinct analytical CustomerIDs;
+- 93,424 distinct analytical AccountIDs;
+- 0 transactions with a missing AccountID.
+
+AccountID assignment provenance was recorded for every transaction.
+
+The observed assignment-method counts were:
+
+- PRIMARY: 579,507 transactions;
+- FALLBACK_CARD1_CARD3_CARD5: 2,221 transactions;
+- FALLBACK_CARD1_CARD2_CARD3: 442 transactions;
+- FALLBACK_CARD1_CARD3: 42 transactions;
+- FALLBACK_CARD1_CARD5: 27 transactions;
+- UNRESOLVED_AVAILABLE_SIGNATURE: 8,301 transactions.
+
+Primary analytical AccountIDs were created from the approved
+customer-nested account signature.
+
+Fallback AccountIDs reused an existing analytical account only when the
+available source signature uniquely identified an account within the
+already assigned CustomerID.
+
+Transactions for which a unique existing account could not be
+established were assigned to a separate unresolved analytical account
+rather than randomly attached to an existing account.
+
+
+#### Account Group Distribution
+
+The generated analytical accounts had the following transaction-count
+distribution:
+
+- minimum: 1 transaction;
+- median: 2 transactions;
+- mean: 6.3211 transactions;
+- 95th percentile: 20 transactions;
+- 99th percentile: 73 transactions;
+- maximum: 4,002 transactions.
+
+
+#### Accounts per Customer
+
+The generated customer-to-account relationships had the following
+distribution:
+
+- minimum: 1 account per customer;
+- median: 1 account per customer;
+- mean: 1.0436 accounts per customer;
+- 95th percentile: 1 account;
+- 99th percentile: 2 accounts;
+- maximum: 4 accounts.
+
+A total of 3,779 analytical customers had more than one generated
+AccountID, representing 4.2213% of the generated customer population.
+
+The maximum number of accounts per customer increased to four after
+fallback and unresolved-account handling. This behavior will be checked
+during the separate AccountID validation phase.
+
+
+#### Interpretation
+
+The AccountID generation process achieved complete transaction coverage
+without independently random account assignment.
+
+AccountID remains a project-level synthetic analytical identifier nested
+within the generated CustomerID structure.
+
+The generated AccountIDs must not be interpreted as verified real-world
+bank accounts from IEEE-CIS.
+
+The observed account distributions describe the output of the project
+methodology and do not, by themselves, establish external realism.
+
+The `isFraud` outcome was not used during AccountID generation.
 
 ### 7.3 MerchantID
 
