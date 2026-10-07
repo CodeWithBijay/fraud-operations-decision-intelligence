@@ -478,6 +478,53 @@ IEEE-CIS.
 
 The `isFraud` outcome is not used in primary grouping, fallback matching,
 or unresolved grouping.
+#### Unresolved Customer Grouping Rule
+
+Transactions that cannot be uniquely linked to an existing primary
+customer group will not be randomly assigned to an established customer.
+
+The unresolved grouping process will use the strongest available source
+signature while preserving uncertainty in the underlying identity.
+
+For transactions where `P_emaildomain` is missing but `card1` and
+`addr1` are available, `card1 + addr1` may first be used to test for a
+unique link to an existing primary customer group.
+
+If no unique link exists, transactions sharing the same available
+`card1 + addr1` signature may form a separate unresolved analytical
+customer group. This unresolved group will not be merged with an
+established primary customer group.
+
+For transactions where `addr1` is missing but `card1` and
+`P_emaildomain` are available, `card1 + P_emaildomain` may first be used
+to test for a unique link to an existing primary customer group.
+
+If no unique link exists, transactions sharing the same available
+`card1 + P_emaildomain` signature may form a separate unresolved
+analytical customer group.
+
+When both `addr1` and `P_emaildomain` are unavailable, `card1` alone
+will not be used to merge the transaction into an existing customer
+group because the fallback analysis demonstrated substantial ambiguity
+when `card1` was used independently.
+
+Transactions for which only `card1` is available will therefore receive
+an isolated analytical customer identity in the initial methodology
+rather than being assigned to an unsupported persistent customer
+relationship.
+
+This approach intentionally favors conservative customer linkage over
+maximum linkage coverage.
+
+The purpose is to avoid manufacturing customer relationships that are
+not supported by the available source information.
+
+All resulting CustomerID values are synthetic analytical identifiers.
+They do not represent recovered or verified real customer identities
+from IEEE-CIS.
+
+The `isFraud` outcome must not be used in primary grouping, fallback
+matching, unresolved grouping, or CustomerID assignment.
 
 ### 7.2 AccountID
 
