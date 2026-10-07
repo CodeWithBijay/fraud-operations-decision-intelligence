@@ -1,0 +1,16 @@
+test_id,description,status,observed
+AID-001,Generated AccountID mapping row count matches source transaction count.,PASS,"source=590540, mapping=590540"
+AID-002,TransactionID is unique in the AccountID mapping.,PASS,duplicate_transaction_ids=0
+AID-003,Every mapped transaction has a CustomerID.,PASS,missing_customer_ids=0
+AID-004,Every transaction has an AccountID.,PASS,missing_account_ids=0
+AID-005,Every AccountID assignment records its generation method.,PASS,missing_account_methods=0
+AID-006,Every source TransactionID is represented in the AccountID mapping.,PASS,unmatched_transaction_ids=0
+AID-007,TransactionDT is preserved in the AccountID mapping.,PASS,changed_transaction_dt=0
+AID-008,Only documented AccountID assignment methods are present.,PASS,unexpected_methods=[]
+AID-009,Every AccountID belongs to exactly one CustomerID.,PASS,accounts_linked_to_multiple_customers=0
+AID-010,PRIMARY AccountID assignments contain all approved source-signature fields.,PASS,incomplete_primary_assignments=0
+AID-011,Each CustomerID plus primary account signature maps to exactly one AccountID.,PASS,inconsistent_primary_signatures=0
+AID-012,Each PRIMARY AccountID represents only one approved customer/account signature.,PASS,primary_account_collisions=0
+AID-013,Fallback AccountID assignments do not cross CustomerID boundaries.,PASS,fallback_accounts_crossing_customers=0
+AID-014,Unresolved AccountIDs remain nested within exactly one CustomerID.,PASS,unresolved_accounts_crossing_customers=0
+AID-015,Unresolved AccountIDs do not collide with primary or fallback accounts.,PASS,problematic_method_collisions=0

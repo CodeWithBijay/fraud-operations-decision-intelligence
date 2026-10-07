@@ -1,0 +1,10 @@
+{
+    "source_transaction_rows": 590540,
+    "mapping_rows": 590540,
+    "distinct_customer_ids": 89522,
+    "distinct_account_ids": 93424,
+    "tests_run": 15,
+    "tests_passed": 15,
+    "tests_failed": 0,
+    "overall_status": "PASS"
+}
