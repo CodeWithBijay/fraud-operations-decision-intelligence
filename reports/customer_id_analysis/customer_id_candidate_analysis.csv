@@ -1,0 +1,6 @@
+candidate_name,columns,total_transactions,complete_candidate_rows,incomplete_candidate_rows,candidate_coverage_percent,candidate_groups,single_transaction_groups,single_transaction_group_percent,repeated_groups,repeated_group_percent,transactions_in_recurring_groups,transactions_in_recurring_groups_percent,mean_transactions_per_group,median_transactions_per_group,group_size_percentile_95,group_size_percentile_99,maximum_group_size
+card1,card1,590540,590540,0,100.0,13553,3444,25.4113,10109,74.5887,587096,99.4168,43.5726,4.0,107.0,786.44,14932
+card1_addr1,card1 + addr1,590540,524834,65706,88.8736,37531,14818,39.482,22713,60.518,510016,97.1766,13.984,2.0,45.0,194.0,5885
+card1_addr1_p_emaildomain,card1 + addr1 + P_emaildomain,590540,432668,157872,73.2665,73407,36502,49.7255,36905,50.2745,396166,91.5635,5.8941,2.0,19.0,69.0,2242
+card1_card2_addr1,card1 + card2 + addr1,590540,516425,74115,87.4496,37280,14730,39.5118,22550,60.4882,501695,97.1477,13.8526,2.0,45.0,192.0,5866
+card1_card2_addr1_p_emaildomain,card1 + card2 + addr1 + P_emaildomain,590540,425766,164774,72.0977,72738,36244,49.8282,36494,50.1718,389522,91.4873,5.8534,2.0,19.0,68.0,2236
