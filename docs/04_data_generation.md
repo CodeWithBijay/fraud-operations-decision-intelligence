@@ -862,6 +862,75 @@ merchant has previously been observed for a customer.
 
 MerchantID generation must not use the current transaction's fraud
 outcome.
+## MerchantID Generation
+
+### MerchantID Requirement
+
+**Status:** Required, methodology under evaluation
+
+**Provenance:** Synthetic analytical identifier
+
+The project schema includes a merchant entity connected to transactions.
+
+A persistent MerchantID is required to support merchant-level
+transaction histories and customer-to-merchant behavioral analysis.
+
+The generated MerchantID may later support derived features and
+analytical questions such as:
+
+- whether a customer has previously interacted with a merchant;
+- transaction counts by merchant;
+- historical merchant transaction volume;
+- customer-to-merchant relationship history;
+- merchant-level fraud exposure analysis.
+
+The IEEE-CIS source data do not contain an explicit MerchantID field
+corresponding to the merchant entity required by the project schema.
+
+MerchantID will therefore not be created through arbitrary random
+assignment.
+
+Candidate source variables will first be evaluated to determine whether
+they can support a defensible project-level analytical merchant
+grouping.
+
+
+### MerchantID Generation Principles
+
+MerchantID will be a synthetic analytical identifier.
+
+It must not be interpreted as a recovered or verified real-world
+merchant identity from IEEE-CIS.
+
+The current transaction's `isFraud` outcome must not be used when
+constructing MerchantID.
+
+Source transaction values will not be overwritten during MerchantID
+generation.
+
+If sufficient source information cannot support a defensible persistent
+merchant relationship, the project will preserve that limitation rather
+than manufacture unsupported merchant relationships.
+
+
+### MerchantID Candidate Analysis
+
+Before MerchantID generation, candidate source signatures will be
+evaluated using the actual transaction data.
+
+The analysis will examine:
+
+- source-field coverage;
+- missingness;
+- number of candidate merchant groups;
+- transactions per candidate merchant;
+- proportion of repeated merchant groups;
+- proportion of transactions represented by recurring groups;
+- unusually large merchant groups;
+- suitability for historical customer-to-merchant analysis.
+
+The final MerchantID generation rule will be documented only after the
+candidate analysis has been completed.
 
 
 ### 7.4 DeviceID
