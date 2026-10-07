@@ -342,6 +342,64 @@ create source-informed groups?
         ▼
      TEST NEXT
 
+#### CustomerID Candidate Analysis
+
+Five source-informed candidate grouping definitions were evaluated using
+the full transaction dataset.
+
+The analysis measured:
+
+- grouping-field coverage;
+- number of resulting groups;
+- proportion of single-transaction groups;
+- proportion of recurring groups;
+- transactions represented by recurring groups;
+- median transactions per group;
+- upper group-size percentiles;
+- maximum group size.
+
+`card1` alone provided complete transaction coverage but produced highly
+concentrated groups, including a maximum group size of 14,932
+transactions. It was therefore not selected as the preferred customer
+grouping candidate.
+
+Adding `addr1` increased grouping specificity while retaining 88.8736%
+coverage. However, the largest resulting group still contained 5,885
+transactions.
+
+The combination:
+
+`card1 + addr1 + P_emaildomain`
+
+produced:
+
+- 73.2665% complete-field coverage;
+- 73,407 candidate groups;
+- 50.2745% recurring groups;
+- 91.5635% of usable transactions belonging to recurring groups;
+- median group size of 2 transactions;
+- 95th-percentile group size of 19 transactions;
+- 99th-percentile group size of 69 transactions;
+- maximum group size of 2,242 transactions.
+
+Adding `card2` to the tested combinations did not materially improve the
+observed grouping characteristics and reduced available transaction
+coverage.
+
+Based on the current analysis, `card1 + addr1 + P_emaildomain` is the
+leading source-informed candidate for constructing the project's
+synthetic analytical CustomerID.
+
+This combination is not interpreted as the true customer identity in
+IEEE-CIS.
+
+The CustomerID methodology is not yet finalized because 157,872
+transactions do not contain complete values for all three candidate
+grouping fields.
+
+A documented fallback method for incomplete transactions must be
+evaluated before the CustomerID generation rule is approved.
+
 ### 7.2 AccountID
 
 **Requirement:** Required
