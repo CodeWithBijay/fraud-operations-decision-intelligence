@@ -23,4 +23,5 @@ AccountID,Account,SYNTHETIC,Implemented,No,Project-level analytical account iden
 DeviceID,Device,SYNTHETIC,Implemented,Yes,Customer-nested analytical device identifier generated only when sufficient source evidence exists
 MerchantID,Merchant,SYNTHETIC,Deferred,Yes,Persistent merchant identifier deferred because source evidence was insufficient
 LocationID,Location,SYNTHETIC,Not Implemented,Yes,Separate persistent location entity not required in Version 1
+HoursSincePreviousTxn,Transaction,DERIVED,Methodology Defined,Yes,Hours since the same analytical customer's most recent strictly earlier transaction
 ``

@@ -136,3 +136,85 @@ For every derived historical feature:
 
 No modeling stage may begin until the implemented historical features
 have
+## 9. HoursSincePreviousTxn
+
+### Definition
+
+`HoursSincePreviousTxn` measures the elapsed time in hours between the
+current transaction and the most recent strictly earlier transaction
+associated with the same analytical CustomerID.
+
+
+### Entity
+
+The feature is customer-level.
+
+Historical observations must therefore have the same CustomerID as the
+current transaction.
+
+
+### Historical Eligibility Rule
+
+For a current transaction occurring at TransactionDT = t, candidate
+historical transactions must satisfy:
+
+historical TransactionDT < t
+
+Transactions occurring at the same TransactionDT are not treated as
+previous transactions because the project does not assume a reliable
+within-timestamp event ordering.
+
+
+### Calculation
+
+Let `previous_t` be the maximum TransactionDT associated with the same
+CustomerID where:
+
+previous_t < current TransactionDT
+
+Then:
+
+HoursSincePreviousTxn =
+(current TransactionDT - previous_t) / 3600
+
+TransactionDT is expressed in seconds, so division by 3600 converts the
+elapsed interval to hours.
+
+
+### First Observed Transaction
+
+If no strictly earlier transaction exists for the CustomerID:
+
+HoursSincePreviousTxn = NULL
+
+NULL represents the absence of observed prior customer history.
+
+The value must not be replaced with zero because zero would represent a
+different temporal meaning.
+
+
+### Leakage Prevention
+
+The feature must not use:
+
+- transactions occurring after the current transaction;
+- transactions occurring at the same TransactionDT as prior history;
+- the current transaction's `isFraud` outcome.
+
+Changing or removing future transactions must not alter the feature
+value of an earlier transaction.
+
+
+### Provenance
+
+Classification:
+
+DERIVED
+
+Source fields:
+
+- CustomerID;
+- TransactionDT.
+
+No random or independently synthetic values are introduced by this
+feature.
