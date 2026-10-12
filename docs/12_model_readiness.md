@@ -1,14 +1,14 @@
 # Model Readiness Assessment
 
-## Overview
+## Purpose
 
-This document evaluates whether the engineered fraud dataset is ready for machine learning.
+This document evaluates whether the engineered fraud dataset is ready for machine learning model development.
 
-The assessment includes:
+The assessment covers:
 
 - Dataset size
+- Feature availability
 - Class distribution
-- Feature completeness
 - Missing value analysis
 - Modeling readiness decision
 
@@ -16,11 +16,15 @@ The assessment includes:
 
 # Dataset Summary
 
-Dataset:
+Dataset Name:
 
 model_dataset_sample
 
-Rows:
+Source:
+
+customer_behavior_feature_view
+
+Total Rows:
 
 10,000
 
@@ -28,7 +32,7 @@ Target Variable:
 
 is_fraud
 
-Feature Set:
+Features Included:
 
 - hours_since_previous_txn
 - txn_count_24h
@@ -38,16 +42,37 @@ Feature Set:
 
 ---
 
-# Class Distribution
+# Class Distribution Analysis
+
+## Query
+
+```sql
+SELECT
+    is_fraud,
+    COUNT(*) AS transaction_count
+FROM model_dataset_sample
+GROUP BY is_fraud
+ORDER BY is_fraud;
+```
+
+## Results
 
 | is_fraud | Transaction Count |
 |-----------|------------------:|
 | 0 | 9,678 |
 | 1 | 322 |
 
-Total Rows:
+Total Transactions:
 
 10,000
+
+Fraud Transactions:
+
+322
+
+Non-Fraud Transactions:
+
+9,678
 
 Fraud Rate:
 
@@ -61,28 +86,39 @@ Non-Fraud Rate:
 
 The dataset is highly imbalanced.
 
-This is expected in fraud detection because fraudulent transactions are typically much less frequent than legitimate transactions.
+This behavior is expected in fraud detection because fraudulent transactions occur much less frequently than legitimate transactions.
 
 ---
 
 # Feature Completeness Analysis
 
-## Query Results
+## Query
+
+```sql
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(hours_s*nce_previous_txn) AS hours_populat*d,
+    COUNT(customer_avg_amt_30d)*AS avg_populated,
+    COUNT(custom*r_amount_zscore) AS zscore_populat*d
+FROM model_dataset_sample;
+```
+
+*# Results
 
 | Metric | Count |
-|----------|-------:|
-| Total Rows | 10,000 |
-| hours_since_previous_txn Populated | 8,863 |
-| customer_avg_amt_30d Populated | 8,096 |
-| customer_amount_zscore Populated | 6,907 |
+|---*------|-------:|
+| Total Rows | 10*000 |
+| hours_since_previous_txn P*pulated | 8,863 |
+| customer_avg_a*t_30d Populated | 8,096 |
+| custom*r_amount_zscore Populated | 6,907 *
 
 ---
 
 # Missing Value Analysis
 
-## hours_since_previous_txn
+#* hours_since_previous_txn
 
-Populated:
+Populat*d:
 
 8,863
 
@@ -90,128 +126,151 @@ Missing:
 
 1,137
 
-Reason:
+Reason*
 
-Customers with no previous transaction history cannot have a previous transaction interval.
+Customers with no prior transact*on history cannot have a previous *ransaction interval.
 
 ---
 
-## customer_avg_amt_30d
+## cust*mer_avg_amt_30d
 
 Populated:
 
-8,096
-
+8,096*
 Missing:
 
 1,904
 
 Reason:
 
-Customers without sufficient historical transactions within the 30-day window do not have an average transaction amount.
+Some cu*tomers do not have enough historic*l transactions within the 30-day l*okback window.
 
 ---
 
-## customer_amount_zscore
+## customer_a*ount_zscore
 
 Populated:
 
 6,907
 
-Missing:
+Mi*sing:
 
 3,093
 
 Reason:
 
-Z-score calculation requires sufficient historical observations and a non-zero historical standard deviation.
+Z-score req*ires:
 
----
+- historical transaction hi*tory
+- a historical average
+- a no*-zero historical standard deviatio*
 
-# Modeling Dataset Creation
+When those requirements are not *atisfied, the feature is NULL.
 
-To simplify baseline modeling, rows containing NULL values in critical behavioral features were removed.
+--*
 
-## Modeling Dataset
+# Modeling Dataset Preparation
 
-Dataset:
-
-model_dataset_ml
-
-Creation Logic:
+*o simplify baseline modeling, rows*containing NULL values in critical*behavioral features were removed.
+*## Query
 
 ```sql
-CREATE TABLE model_dataset_ml AS
+DROP TABLE IF EXI*TS model_dataset_ml;
+
+CREATE TABLE*model_dataset_ml AS
 SELECT *
-FROM model_dataset_sample
+FROM *odel_dataset_sample
 WHERE
-    hours_since_previous_txn IS NOT NULL
-    AND customer_avg_amt_30d IS NOT NULL
-    AND customer_amount_zscore IS NOT NULL;
+    hour*_since_previous_txn IS NOT NULL
+  * AND customer_avg_amt_30d IS NOT N*LL
+    AND customer_amount_zscore *S NOT NULL;
 ```
 
-Result:
+## Result
 
-```text
-Rows Retained: 6,907
-```
+Rows R*tained:
+
+6,907
+
+Rows Removed:
+
+3,0*3
+
+Retention Rate:
+
+69.07%
 
 ---
 
-# Feature Effectiveness Findings
+#*Feature Effectiveness Findings
 
-## TxnCount_24h
+##*TxnCount_24h
 
 Observed Result:
 
-```text
-Non-Fraud Average: 2.4219
+| *s_fraud | Average TxnCount_24h |
+|*----------|---------------------:|*| 0 | 2.4219 |
+| 1 | 2.9882 |
 
-Fraud Average: 2.9882
-```
+Obs*rvation:
 
-Observation:
-
-Fraudulent transactions exhibit higher recent transaction activity than non-fraudulent transactions.
+Fraudulent transactions *xhibit higher recent transaction a*tivity than non-fraudulent transac*ions.
 
 Conclusion:
 
-TxnCount_24h demonstrates predictive signal and should be retained.
+TxnCount_24h d*monstrates predictive signal and s*ould be retained for modeling.
 
----
+--*
 
 # Modeling Readiness Decision
 
-## Status
+#* Status
 
-READY FOR BASELINE MODELING
+READY FOR BASELINE MODEL *EVELOPMENT
 
-The dataset now contains:
+The dataset now contai*s:
 
 - Target variable
-- Validated behavioral features
-- Reduced missing values
-- Fraud examples available for training and testing
+- Validated *ehavioral features
+- Reduced missi*g values
+- Fraud observations avai*able for training and testing
+- Su*ficient sample size for baseline e*perimentation
 
-Remaining considerations:
+---
 
-- Class imbalance handling
-- Train/Test split
-- Baseline model evaluation
+# Risks and Co*siderations
+
+## Class Imbalance
+
+F*aud represents only 3.22% of obser*ations.
+
+Future modeling work may *equire:
+
+- class weighting
+- overs*mpling
+- undersampling
+- threshold*tuning
+
+## Feature Quality
+
+Custom*rAmountZScore showed evidence of e*treme values during exploratory an*lysis.
+
+Additional feature review *ay be required before production u*e.
 
 ---
 
 # Next Steps
 
-1. Create Train/Test Split
+1. Create T*ain/Test Split
 2. Build Baseline Fraud Model
 3. Evaluate Model Performance
 4. Analyze Feature Importance
-5. Iterate on Feature Engineering if necessary
+5. Improve Feature Engineering
+6. Build Production Modeling Dataset
 
 ---
 
-# Current Project Status
+# Project Status
 
 ✅ Data Validation
 
