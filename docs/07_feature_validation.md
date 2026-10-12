@@ -52,3 +52,36 @@ Checks performed:
 Result:
 
 PASS
+## CustomerAmountZScore
+
+Purpose:
+
+Measure how unusual the current transaction amount is relative to the
+customer's recent spending distribution.
+
+Entity:
+
+CustomerID
+
+Historical Window:
+
+30 days
+
+History Rule:
+
+historical TransactionDT < current TransactionDT
+
+Calculation:
+
+(TransactionAmt - CustomerAvgAmt_30d)
+/
+CustomerStdDevAmt_30d
+
+Requirements:
+
+- historical average available
+- historical standard deviation available
+
+If standard deviation is NULL or zero:
+
+CustomerAmountZScore = NULL
