@@ -54,34 +54,20 @@ Result:
 PASS
 ## CustomerAmountZScore
 
-Purpose:
+Status: VALIDATED
 
-Measure how unusual the current transaction amount is relative to the
-customer's recent spending distribution.
+Checks performed:
 
-Entity:
+- Historical average verified
+- Historical standard deviation verified
+- First transaction returns NULL
+- Insufficient-history cases return NULL
+- Positive z-scores verified
+- Negative z-scores verified
+- Point-in-time correctness verified
+- Same-timestamp behavior inherited from validated historical features
+- No fraud-label leakage
 
-CustomerID
+Result:
 
-Historical Window:
-
-30 days
-
-History Rule:
-
-historical TransactionDT < current TransactionDT
-
-Calculation:
-
-(TransactionAmt - CustomerAvgAmt_30d)
-/
-CustomerStdDevAmt_30d
-
-Requirements:
-
-- historical average available
-- historical standard deviation available
-
-If standard deviation is NULL or zero:
-
-CustomerAmountZScore = NULL
+PASS
