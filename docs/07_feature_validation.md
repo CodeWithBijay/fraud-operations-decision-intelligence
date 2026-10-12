@@ -35,3 +35,20 @@ Checks performed:
 Result:
 
 PASS
+## CustomerAvgAmt_30d
+
+Status: VALIDATED
+
+Checks performed:
+
+- Customer-level entity boundary verified.
+- First observed customer transaction returns NULL.
+- Average calculation verified.
+- Same-timestamp transactions do not contribute to one another.
+- Only strictly earlier TransactionDT values qualify.
+- Future transactions do not affect the feature.
+- Current transaction fraud outcome is not used.
+
+Result:
+
+PASS
