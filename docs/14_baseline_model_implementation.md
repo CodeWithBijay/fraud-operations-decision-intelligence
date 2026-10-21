@@ -2,11 +2,11 @@
 
 ## Objective
 
-Build the first fraud prediction model using engineered behavioral features.
+Implement the first fraud prediction model using engineered behavioral features.
 
 ---
 
-# Dataset
+# Modeling Dataset
 
 Dataset:
 
@@ -24,15 +24,19 @@ Testing Rows:
 
 1,382
 
-Target:
+Target Variable:
 
 is_fraud
 
+Fraud Rate:
+
+3.22%
+
 ---
 
-# Features
+# Features Used
 
-Input Variables:
+Behavioral Features:
 
 - hours_since_previous_txn
 - txn_count_24h
@@ -40,7 +44,7 @@ Input Variables:
 - amount_deviation_from_customer_avg
 - customer_amount_zscore
 
-Target Variable:
+Target:
 
 - is_fraud
 
@@ -54,8 +58,9 @@ Reason:
 
 - Simple
 - Interpretable
-- Industry standard baseline
+- Industry-standard baseline
 - Fast training
+- Easy feature coefficient analysis
 
 ---
 
@@ -66,25 +71,26 @@ Reason:
 3. Train logistic regression model
 4. Generate predictions
 5. Evaluate performance
+6. Review feature importance
 
 ---
 
 # Evaluation Metrics
 
-Primary:
+Primary Metrics:
 
 - Precision
 - Recall
 - F1 Score
 
-Secondary:
+Secondary Metrics:
 
 - ROC-AUC
 - Accuracy
 
 ---
 
-# Risks
+# Modeling Risks
 
 ## Class Imbalance
 
@@ -95,16 +101,19 @@ Fraud Rate:
 Potential Mitigation:
 
 - Class weighting
+- Oversampling
 - Threshold tuning
-- Resampling
 
 ---
 
-# Expected Outputs
+# Expected Deliverables
 
 - Trained baseline model
 - Confusion matrix
-- Performance metrics
+- Precision score
+- Recall score
+- F1 score
+- ROC-AUC score
 - Feature importance review
 
 ---
