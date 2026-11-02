@@ -1,4 +1,4 @@
-"""Fraud Operations Decision Intelligence — Week 10 application.
+"""Fraud Operations Decision Intelligence — Week 11 application.
 
 Decision-maker: Fraud Operations Lead.
 Decisions supported: which of today's fraud alerts the team reviews first (limited capacity),
@@ -12,12 +12,13 @@ Pages
 
 Data (PostgreSQL, database fraud_risk_db)
     transaction, transaction_features, alert_queue, alert_rule_config, ops_decision_log
-Models (folder models/, built by src/modeling/train_*.py)
+Models (folder models/, built by src/modeling/evaluate_week11.py)
     fraud_model.joblib, alert_volume_model.joblib
 
 Run:  streamlit run app/app.py
 """
 import html
+import json
 import os
 import sys
 
@@ -31,8 +32,8 @@ from sqlalchemy import create_engine, text
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src", "modeling"))
-from common import (FRAUD_FEATURES, MODEL_DIR, fraud_design, linear_contributions,  # noqa: E402
-                    sigmoid, volume_design)
+from common import (MODEL_DIR, SOURCE_COLUMNS_ALL, fraud_design, linear_contributions,  # noqa: E402
+                    sigmoid, volume_design, volume_lags)
 
 st.set_page_config(page_title="FraudOps · Decision Intelligence", page_icon=":material/shield:",
                    layout="wide", initial_sidebar_state="expanded")
@@ -177,7 +178,9 @@ RULE_FLAGS = {"R1": "r1_velocity", "R2": "r2_amount_spike", "R3": "r3_rapid_repe
               "R4": "r4_new_customer", "R5": "r5_large_amount", "R6": "r6_new_device"}
 RULE_NAMES = {"r1": "High 24h velocity", "r2": "Amount spike", "r3": "Rapid repeat",
               "r4": "New customer", "r5": "Large amount", "r6": "New device"}
-SOURCE_COLS = ["product_cd", "card6"] + [f"c{i}" for i in range(1, 15)] + ["d1", "d15"]
+SOURCE_COLS = SOURCE_COLUMNS_ALL
+TEXT_COLS = {"product_cd", "card6", "card4", "p_emaildomain"}
+EVAL_PATH = os.path.join(ROOT, "reports", "week11", "evaluation_results.json")
 RAISES, LOWERS = "#C0392B", "#2E86C1"
 NOT_CAUSAL = ("These are associations the model learned from historical data. They show what the model "
               "relies on, not what causes fraud.")
@@ -246,8 +249,7 @@ def load_days():
 
 
 def load_day(day):
-    src = ", ".join(f"t.{c}" + ("::float8" if c not in ("product_cd", "card6") else "") + f" AS {c}"
-                    for c in SOURCE_COLS)
+    src = ", ".join(f"t.{c}" + ("::float8" if c not in TEXT_COLS else "") + f" AS {c}" for c in SOURCE_COLS)
     return query(
         f"""
         SELECT a.transaction_id, a.customer_id, a.device_id, a.transaction_dt,
@@ -365,7 +367,7 @@ def team_metrics():
 # ============================================================
 def fraud_scores(df, fm):
     """Probability, 90% range (bootstrap refits) and contributions for each row."""
-    X, _ = fraud_design(df, fm["fill"])
+    X, _ = fraud_design(df, fm["fill"], fm.get("feature_set", "week10"))
     Z = (X - fm["scaler_mean"]) / fm["scaler_sd"]
     logit = fm["intercept"] + Z @ fm["coef"]
     boot = fm["boot_intercept"][None, :] + Z @ fm["boot_coef"].T
@@ -382,8 +384,10 @@ def count_dist(mu, phi):
     return nbinom(r, r / (r + mu))
 
 
-def volume_forecast(vm, lag1, lag7_mean, day, capacity):
-    X = volume_design([lag1], [lag7_mean], [day])
+def volume_forecast(vm, inp, day, capacity):
+    """Forecast for `day` from the inputs known the evening before (dict with lag1, lag7_mean, lag2, lag7)."""
+    X = volume_design([inp["lag1"]], [inp["lag7_mean"]], [day], [inp.get("lag2", np.nan)],
+                      [inp.get("lag7", np.nan)], feature_set=vm.get("feature_set", "week10"))
     base, contrib = linear_contributions(X, vm["coef"], vm["intercept"], vm["train_mean"])
     mu = float(np.exp(vm["intercept"] + X[0] @ vm["coef"]))
     dist = count_dist(mu, vm["phi"])
@@ -395,10 +399,114 @@ def volume_forecast(vm, lag1, lag7_mean, day, capacity):
             "base": base, "contrib": contrib[0]}
 
 
-def volume_inputs(history, day):
-    """Inputs known the evening before `day`: yesterday's count and the previous 7-day average."""
-    prev = [history.get(d, np.nan) for d in range(day - 7, day)]
-    return float(history.get(day - 1, np.nan)), float(np.nanmean(prev))
+@st.cache_data
+def load_evaluation():
+    """Week 11 evaluation results written by src/modeling/evaluate_week11.py (if it has been run)."""
+    if os.path.exists(EVAL_PATH):
+        with open(EVAL_PATH) as f:
+            return json.load(f)
+    return None
+
+
+def similar_case_rate(metrics, p):
+    """Observed fraud rate on test days among transactions scored at a similar level (calibration tenth)."""
+    cal = pd.DataFrame(metrics.get("calibration", []))
+    if cal.empty:
+        return None
+    row = cal.iloc[(cal["mean_predicted"] - p).abs().argmin()]
+    return float(row["observed_rate"]), int(row["n"])
+
+
+def out_of_range(value, rng, label, fmt_):
+    if rng is None or pd.isna(value):
+        return None
+    if value < rng["p01"] or value > rng["p99"]:
+        return (f"{label} ({fmt_.format(value)}) is outside the range the model saw in 98% of training cases "
+                f"({fmt_.format(rng['p01'])}–{fmt_.format(rng['p99'])}). Treat the prediction as an extrapolation.")
+    return None
+
+
+def check_fraud_inputs(inp, ranges, baseline=None):
+    """Hard constraints (block the scenario) and plausibility warnings (allow, but flag)."""
+    errors, warnings = [], []
+    new, amt, cnt, hrs, avg, prior = (inp["new_customer"], inp["amount"], inp["count_24h"], inp["hours_prev"],
+                                      inp["avg_30d"], inp["prior"])
+    if amt <= 0:
+        errors.append("Amount must be greater than $0.")
+    if new:
+        if prior > 0 or avg > 0 or cnt > 0:
+            errors.append("A new customer has no history. Set prior transactions, 30-day average and transactions "
+                          "in prior 24h to 0, or untick 'New customer'.")
+    else:
+        if prior < 1:
+            errors.append("An existing customer needs at least 1 prior transaction (or tick 'New customer').")
+        if hrs <= 0:
+            errors.append("Hours since the previous transaction must be greater than 0.")
+        if cnt > prior:
+            errors.append("Transactions in the prior 24h cannot exceed the customer's prior transaction count.")
+        if cnt >= 1 and hrs > 24:
+            errors.append("There were transactions in the prior 24h, so hours since the previous transaction must "
+                          "be 24 or less.")
+        if cnt == 0 and 0 < hrs <= 24:
+            errors.append("The previous transaction was within 24 hours, so transactions in the prior 24h must be "
+                          "at least 1.")
+        if hrs <= 720 and avg <= 0:
+            errors.append("The previous transaction was within 30 days, so the customer's 30-day average must be "
+                          "above $0.")
+        if hrs > 720 and avg > 0:
+            errors.append("The previous transaction was more than 30 days ago, so there is no 30-day average; "
+                          "set it to 0.")
+    if ranges:
+        for key, col, label, f_ in [("amount", "transaction_amt", "Amount", "${:,.2f}"),
+                                    ("count_24h", "txn_count_24h", "Transactions in prior 24h", "{:.0f}"),
+                                    ("hours_prev", "hours_since_previous_txn", "Hours since previous", "{:,.1f}"),
+                                    ("avg_30d", "customer_avg_amt_30d", "Customer 30-day average", "${:,.2f}"),
+                                    ("prior", "prior_txn_count", "Prior transactions", "{:,.0f}")]:
+            if new and key != "amount":
+                continue
+            if key == "avg_30d" and inp[key] == 0:
+                continue
+            if baseline is not None and abs(float(inp[key]) - float(baseline.get(key, np.nan))) < 1e-6:
+                continue  # unchanged from the recorded case: no scenario warning
+            w = out_of_range(inp[key], ranges.get(col), label, f_)
+            if w:
+                warnings.append(w)
+    z = inp.get("zscore")
+    if z is not None and not pd.isna(z) and abs(z) > 10:
+        warnings.append(f"The amount is {z:.0f} standard deviations from this customer's usual spend; the model "
+                        f"caps this signal at 10, so larger differences do not raise the prediction further.")
+    return errors, warnings
+
+
+def check_volume_inputs(inp, capacity, ranges, uses_lags, baseline=None):
+    errors, warnings = [], []
+    for k, label in [("lag1", "Alerts yesterday"), ("lag7_mean", "7-day average"), ("lag2", "Alerts two days ago"),
+                     ("lag7", "Alerts same weekday last week")]:
+        if k in inp and inp[k] < 0:
+            errors.append(f"{label} cannot be negative.")
+    if capacity < 1:
+        errors.append("Review capacity must be at least 1.")
+    in_window = inp["lag1"] + (inp["lag2"] + inp["lag7"] if uses_lags else 0)
+    if inp["lag7_mean"] * 7 + 1e-9 < in_window:
+        errors.append("The 7-day average includes yesterday" + (", two days ago and the same weekday last week"
+                                                                if uses_lags else "") +
+                      f", so it must be at least {in_window / 7:.1f} (their total ÷ 7).")
+    if ranges:
+        for k, label in [("lag1", "Alerts yesterday"), ("lag7_mean", "7-day average"), ("lag2", "Alerts two days ago"),
+                         ("lag7", "Alerts same weekday last week")]:
+            if baseline is not None and abs(inp[k] - baseline.get(k, np.nan)) < 1e-6:
+                continue  # unchanged from the actual history: no scenario warning
+            if k in ranges and (uses_lags or k in ("lag1", "lag7_mean")):
+                w = out_of_range(inp[k], ranges[k], label, "{:,.0f}")
+                if w:
+                    warnings.append(w)
+    return errors, warnings
+
+
+def volume_ranges_from_history(history):
+    s = pd.Series(history).sort_index()
+    cols = {"lag1": s.shift(1), "lag2": s.shift(2), "lag7": s.shift(7), "lag7_mean": s.shift(1).rolling(7).mean()}
+    return {k: {"p01": float(v.quantile(0.01)), "p99": float(v.quantile(0.99))} for k, v in cols.items()}
 
 
 def contribution_chart(labels, values, value_title):
@@ -407,7 +515,7 @@ def contribution_chart(labels, values, value_title):
     return (alt.Chart(df).mark_bar()
             .encode(x=alt.X("Contribution:Q", title=value_title),
                     y=alt.Y("Predictor:N", sort=alt.EncodingSortField("Contribution", op="sum", order="descending"),
-                            title=None),
+                            title=None, axis=alt.Axis(labelLimit=340)),
                     color=alt.Color("Direction:N", scale=alt.Scale(domain=["Raises prediction", "Lowers prediction"],
                                                                    range=[RAISES, LOWERS]),
                                     legend=alt.Legend(orient="bottom", title=None)),
@@ -481,50 +589,77 @@ def pct(x):
 # ============================================================
 # 6. AUTOMATIC WHAT-IF SUMMARIES
 # ============================================================
-def fraud_summary(changes, base_p, new_p, new_lo, new_hi, top_moves, queue_pos, n_alerts, capacity, metrics):
-    if not changes:
-        lead = "No inputs were changed, so the scenario equals the baseline."
+def fraud_summary(changes, b, s, queue_info, capacity, metrics, warnings, caution):
+    """Five-part summary of a fraud what-if comparison."""
+    lead = ("No inputs were changed, so the scenario equals the baseline." if not changes else
+            "Changed: " + "; ".join(f"{k} {a} → {c}" for k, a, c in changes) + ".")
+    diff = (s["p"] - b["p"]) * 100
+    direction = "no change" if abs(diff) < 0.05 else (f"{abs(diff):.1f} points higher" if diff > 0
+                                                      else f"{abs(diff):.1f} points lower")
+    pos_b, pos_s, displaced, cutoff = (queue_info["pos_base"], queue_info["pos_scen"], queue_info["displaced"],
+                                       queue_info["cutoff"])
+    if pos_s <= capacity and pos_b > capacity:
+        trade = (f"The scenario moves this case inside today's capacity (rank #{pos_b} → #{pos_s}). Reviewing it "
+                 f"would push out the alert now at rank #{capacity}, whose expected exposure is ${displaced:,.2f}.")
+    elif pos_s > capacity and pos_b <= capacity:
+        trade = (f"The scenario moves this case outside today's capacity (rank #{pos_b} → #{pos_s}), freeing a "
+                 f"review slot for the next alert in the queue.")
+    elif pos_s <= capacity:
+        trade = (f"The case stays inside today's capacity (rank #{pos_b} → #{pos_s}); no other alert is displaced.")
     else:
-        lead = "Scenario inputs: " + "; ".join(f"{k} {a} → {b}" for k, a, b in changes) + "."
-    diff = (new_p - base_p) * 100
-    direction = "unchanged" if abs(diff) < 0.05 else ("higher" if diff > 0 else "lower")
+        trade = (f"The case stays outside today's capacity (rank #{pos_b} → #{pos_s}). Reviewing it anyway means "
+                 f"skipping an alert with expected exposure of at least ${cutoff:,.2f}.")
+    pr = metrics["comparison"]["Logistic regression (selected)"]["pr_auc"]
     lines = [
-        f"**Inputs.** {lead} Source attributes (IEEE-CIS counts, time deltas, product code, card type) "
-        f"were held at their recorded values.",
-        f"**Updated prediction.** Fraud probability {pct(new_p)} (90% model range {pct(new_lo)}–{pct(new_hi)}).",
-        f"**Change from baseline.** {pct(base_p)} → {pct(new_p)}, {abs(diff):.1f} percentage points {direction}."
-        + (f" Largest drivers of the change: {top_moves}." if top_moves else ""),
-        f"**Implication.** Under the expected-exposure policy this scenario would rank #{queue_pos} of "
-        f"{n_alerts} of today's alerts — "
-        + ("inside" if queue_pos <= capacity else "outside") + f" today's review capacity of {capacity}.",
-        f"**Limitations.** This is a model-based scenario: it shows how the model's estimate responds, not what "
-        f"would happen if the customer behaved differently, and not proof of cause. On later test days the model "
-        f"reached PR-AUC {metrics['comparison']['Logistic regression (selected)']['pr_auc']:.2f}, so many "
-        f"high-probability alerts are still legitimate. The range reflects uncertainty in the model's "
-        f"coefficients only. Data are IEEE-CIS transactions with generated customer identities.",
+        f"**Inputs.** {lead} IEEE-CIS source attributes were held at their recorded values.",
+        f"**Comparison.** Fraud probability {pct(b['p'])} → {pct(s['p'])} ({direction}); 90% model range "
+        f"{pct(s['lo'])}–{pct(s['hi'])}. Expected exposure ${b['exp']:,.2f} → ${s['exp']:,.2f}."
+        + (f" Largest drivers of the change: {queue_info['moves']}." if queue_info["moves"] else ""),
+        f"**Trade-off.** {trade}",
+        "**Implication.** " + ("Under the expected-exposure policy this scenario would be reviewed today."
+                               if pos_s <= capacity else
+                               "Under the expected-exposure policy this scenario would wait or expire unless "
+                               "capacity rises or the Lead overrides the ranking."),
+        f"**Limitations.** A model-based scenario: it shows how the model's estimate responds, not what would happen "
+        f"if the transaction or customer were different, and not proof of fraud or of cause. On later test days the "
+        f"model reached PR-AUC {pr:.2f}, so many high-probability alerts are still legitimate. The range covers "
+        f"uncertainty in the model's coefficients only."
+        + (" " + " ".join(warnings) if warnings else "") + (f" {caution}" if caution else ""),
     ]
     return "\n\n".join(lines)
 
 
-def volume_summary(changes, base, new, capacity, metrics):
+def volume_summary(changes, base, new, base_cap, new_cap, metrics, warnings, busy_bias):
     lead = ("No inputs were changed, so the scenario equals the baseline." if not changes else
-            "Scenario inputs: " + "; ".join(f"{k} {a} → {b}" for k, a, b in changes) + ".")
+            "Changed: " + "; ".join(f"{k} {a} → {c}" for k, a, c in changes) + ".")
     diff = new["mu"] - base["mu"]
+    if new_cap != base_cap:
+        saved = base["exp_over_newcap_base"] - new["exp_over"]
+        per_slot = saved / (new_cap - base_cap) if new_cap != base_cap else 0
+        trade = (f"Changing capacity from {base_cap} to {new_cap} reviews changes expected overflow from "
+                 f"{base['exp_over_newcap_base']:.0f} to {new['exp_over']:.0f} alerts under the scenario inputs "
+                 f"(about {abs(per_slot):.2f} fewer unreviewed alerts per extra review slot), at the cost of "
+                 f"{abs(new_cap - base_cap)} {'more' if new_cap > base_cap else 'fewer'} reviews of analyst time.")
+    else:
+        trade = ("Capacity was unchanged; the comparison shows how the forecast responds to different alert "
+                 "conditions, not to a staffing decision.")
     lines = [
         f"**Inputs.** {lead}",
-        f"**Updated forecast.** About {new['mu']:.0f} alerts (90% range {new['lo']:.0f}–{new['hi']:.0f}); "
-        f"{pct(new['p_over'])} chance of exceeding a capacity of {capacity}.",
-        f"**Change from baseline.** {base['mu']:.0f} → {new['mu']:.0f} alerts ({diff:+.0f}); chance of overflow "
-        f"{pct(base['p_over'])} → {pct(new['p_over'])}; expected alerts beyond capacity "
-        f"{base['exp_over']:.0f} → {new['exp_over']:.0f}.",
+        f"**Comparison.** Forecast {base['mu']:.0f} → {new['mu']:.0f} alerts ({diff:+.0f}); 90% range "
+        f"{new['lo']:.0f}–{new['hi']:.0f}. Chance of overflow {pct(base['p_over'])} → {pct(new['p_over'])}; "
+        f"expected alerts beyond capacity {base['exp_over']:.0f} → {new['exp_over']:.0f}.",
+        f"**Trade-off.** {trade}",
         "**Implication.** "
         + ("Overflow is more likely than not: consider adding review capacity or deferring low-exposure alerts."
            if new["p_over"] > 0.5 else
            "Capacity is likely sufficient; the remaining risk is a busy day in the upper part of the range."),
         f"**Limitations.** A model-based scenario, not a guarantee. The forecast assumes the alerting rules and "
-        f"transaction mix stay as they were on training days. Its 90% range contained the actual count on "
-        f"{metrics['interval_coverage_test']:.0%} of test days. Changing yesterday's count shows how the model "
-        f"responds; it does not cause tomorrow's volume.",
+        f"transaction mix stay as they were in training. Its 90% range contained the actual count on "
+        f"{metrics['interval_coverage_test']:.0%} of test days."
+        + (f" On the busiest test days it under-forecast by about {busy_bias:.0f} alerts on average, so plan for "
+           f"the upper part of the range." if busy_bias and busy_bias > 1 else "")
+        + " Changing yesterday's count shows how the model responds; it does not cause tomorrow's volume."
+        + (" " + " ".join(warnings) if warnings else ""),
     ]
     return "\n\n".join(lines)
 
@@ -825,17 +960,27 @@ elif page == "Alert investigation":
 
     with tab_model:
         if not fm:
-            st.info("Train the fraud model (src/modeling/train_fraud_model.py) to see explanations.")
+            st.info("Train the fraud model to see explanations.")
         else:
             one = queue[queue.transaction_id == choice]
             s1 = fraud_scores(one, fm)
             contrib = s1["contrib"][0]
             base_p = float(sigmoid(s1["base"]))
-            st.subheader("Why the model gave this probability")
+            sim = similar_case_rate(fm["metrics"], float(row["fraud_prob"]))
+            with st.container(border=True):
+                st.markdown("**How much to trust this number**")
+                st.markdown(
+                    f"The model estimates a **{pct(row['fraud_prob'])}** chance of fraud "
+                    f"(90% model range {pct(row['prob_lo'])}–{pct(row['prob_hi'])})."
+                    + (f" On test days the model had never seen, transactions it scored at a similar level turned "
+                       f"out to be fraud **{pct(sim[0])}** of the time (based on {sim[1]:,} transactions)."
+                       if sim else "")
+                    + " It ranks cases for review; it does not prove that this transaction is fraud.")
+            st.subheader("Why the model gave this probability (this alert only)")
             st.markdown(f"An average transaction in the training data scores **{pct(base_p)}**. "
                         f"Each bar shows how much one predictor moved **this transaction** from that "
                         f"average, on the log-odds scale. The bars add up to **{pct(row['fraud_prob'])}**.")
-            labels = [fm["labels"][f] for f in FRAUD_FEATURES]
+            labels = [fm["labels"][f] for f in fm["features"]]
             order = np.argsort(-np.abs(contrib))[:10]
             st.altair_chart(contribution_chart([labels[i] for i in order], contrib[order],
                                                "Contribution to this prediction (log-odds)"),
@@ -846,8 +991,8 @@ elif page == "Alert investigation":
                         + (f"The biggest upward pushes come from {', '.join(up)}. " if up else "")
                         + (f"{', '.join(down)} pulled the estimate down. " if down else "")
                         + "A bar of +0.7 roughly doubles the odds of fraud; −0.7 roughly halves them.")
-            st.caption("This chart explains one prediction (local). Overall importance across all transactions "
-                       "is on the Fraud risk model page. " + NOT_CAUSAL
+            st.caption("This chart explains one prediction (local explanation). Overall importance across all "
+                       "transactions is a different view, on the Fraud risk model page. " + NOT_CAUSAL
                        + " IEEE count variables C1–C14 are anonymized by the data provider and strongly "
                          "correlated with each other, so read them as a group rather than one at a time.")
 
@@ -856,87 +1001,149 @@ elif page == "Alert investigation":
             st.info("Train the fraud model to enable what-if analysis.")
         else:
             one = queue[queue.transaction_id == choice].iloc[[0]].copy()
-            st.subheader("What if this transaction looked different?")
-            st.caption("Change the behavioral inputs and run the scenario. The baseline is the transaction as "
-                       "recorded. IEEE-CIS source attributes stay at their recorded values.")
+            st.subheader("Compare this alert with a what-if scenario")
+            st.caption("The baseline is the transaction as recorded. Edit the inputs below and run the scenario; "
+                       "the result is shown side by side with the baseline.")
             cold = bool(one["cold_start_flag"].iloc[0])
             std = one["customer_std_amt_30d"].iloc[0]
+            hrs0 = one["hours_since_previous_txn"].iloc[0]
+            avg0 = one["customer_avg_amt_30d"].iloc[0]
+            ranges = fm.get("ranges")
             with st.form("fraud_whatif"):
+                st.markdown("**① Transaction details** · *scenario inputs* — describe a different transaction. "
+                            "These are characteristics of the case, not something the bank controls.")
                 w1, w2, w3 = st.columns(3)
                 amt = w1.number_input("Amount ($)", min_value=0.0, value=float(one["transaction_amt"].iloc[0]),
                                       step=10.0)
                 cnt = w2.number_input("Transactions in prior 24h", min_value=0,
                                       value=int(one["txn_count_24h"].iloc[0]), step=1)
-                new_cust = w3.checkbox("New customer (no history)", value=cold)
+                hrs = w3.number_input("Hours since previous transaction", min_value=0.0,
+                                      value=0.0 if pd.isna(hrs0) else float(hrs0), step=1.0,
+                                      help="Leave at 0 for a new customer.")
+                st.markdown("**② Customer history** · *fixed characteristics* — normally fixed for a given customer; "
+                            "change them only to test how sensitive the prediction is.")
                 w4, w5, w6 = st.columns(3)
-                hrs0 = one["hours_since_previous_txn"].iloc[0]
-                avg0 = one["customer_avg_amt_30d"].iloc[0]
-                hrs = w4.number_input("Hours since previous transaction", min_value=0.0,
-                                      value=0.0 if pd.isna(hrs0) else float(hrs0), step=1.0)
+                new_cust = w4.checkbox("New customer (no history)", value=cold)
                 avg = w5.number_input("Customer avg amount, 30 days ($)", min_value=0.0,
-                                      value=0.0 if pd.isna(avg0) else float(avg0), step=10.0)
+                                      value=0.0 if pd.isna(avg0) else float(avg0), step=10.0,
+                                      help="0 means no purchases in the last 30 days.")
                 prior = w6.number_input("Customer's prior transaction count", min_value=0,
                                         value=int(one["prior_txn_count"].iloc[0]), step=1)
-                st.caption("When 'New customer' is ticked, the history inputs are ignored.")
+                st.markdown("**③ Recorded source attributes** · *fixed* — IEEE-CIS counts, time deltas, product code "
+                            "and card details stay at their recorded values.")
+                st.caption("The Lead's own decision levers are the queue policy and review capacity in the "
+                           "settings toolbar; this comparison explores how the model responds to a different case.")
                 run = st.form_submit_button("Run scenario", type="primary")
 
             if run:
-                scen = one.copy()
-                scen["transaction_amt"] = amt
-                scen["txn_count_24h"] = 0 if new_cust else cnt
-                if new_cust:
-                    scen[["hours_since_previous_txn", "customer_avg_amt_30d",
-                          "customer_amount_zscore"]] = np.nan
-                    scen["prior_txn_count"], scen["cold_start_flag"] = 0, True
+                zscore = ((amt - avg) / std) if (not new_cust and avg > 0 and pd.notna(std) and std > 0) else np.nan
+                inp = {"new_customer": new_cust, "amount": amt, "count_24h": cnt, "hours_prev": hrs,
+                       "avg_30d": avg, "prior": prior, "zscore": zscore}
+                base_inp = {"amount": float(one["transaction_amt"].iloc[0]),
+                            "count_24h": float(one["txn_count_24h"].iloc[0]),
+                            "hours_prev": 0.0 if pd.isna(hrs0) else float(hrs0),
+                            "avg_30d": 0.0 if pd.isna(avg0) else float(avg0),
+                            "prior": float(one["prior_txn_count"].iloc[0])}
+                errors, warnings = check_fraud_inputs(inp, ranges, base_inp)
+                if errors:
+                    st.session_state["fraud_whatif_result"] = {"txn": choice, "errors": errors}
                 else:
-                    scen["hours_since_previous_txn"] = hrs if (hrs > 0 or not pd.isna(hrs0)) else np.nan
-                    scen["customer_avg_amt_30d"] = avg if (avg > 0 or not pd.isna(avg0)) else np.nan
-                    scen["prior_txn_count"] = max(prior, 1)
-                    scen["cold_start_flag"] = False
-                    scen["customer_amount_zscore"] = ((amt - avg) / std
-                                                      if pd.notna(std) and std > 0 else np.nan)
-                b, s = fraud_scores(one, fm), fraud_scores(scen, fm)
-                names = {"transaction_amt": ("Amount", "${:,.2f}"),
-                         "txn_count_24h": ("Transactions in prior 24h", "{:.0f}"),
-                         "hours_since_previous_txn": ("Hours since previous", "{:.1f}"),
-                         "customer_avg_amt_30d": ("Customer avg amount", "${:,.2f}"),
-                         "prior_txn_count": ("Prior transaction count", "{:.0f}"),
-                         "cold_start_flag": ("New customer", "{}")}
-                changes = []
-                for col, (nm, f_) in names.items():
-                    a0, a1 = one[col].iloc[0], scen[col].iloc[0]
-                    if (pd.isna(a0) and pd.isna(a1)) or (not pd.isna(a0) and not pd.isna(a1) and a0 == a1):
-                        continue
-                    show = lambda v: "none" if pd.isna(v) else f_.format(bool(v) if col == "cold_start_flag" else v)
-                    changes.append((nm, show(a0), show(a1)))
-                delta = s["contrib"][0] - b["contrib"][0]
-                labels = [fm["labels"][f] for f in FRAUD_FEATURES]
-                moves = [f"{labels[i]} ({'+' if delta[i] > 0 else '−'})"
-                         for i in np.argsort(-np.abs(delta))[:3] if abs(delta[i]) > 0.01]
-                new_exp = float(s["p"][0]) * amt
-                others = queue[queue.transaction_id != choice]["exposure"]
-                queue_pos = int((others > new_exp).sum()) + 1
-                res = {"base": float(b["p"][0]), "p": float(s["p"][0]), "lo": float(s["lo"][0]),
-                       "hi": float(s["hi"][0]),
-                       "summary": fraud_summary(changes, float(b["p"][0]), float(s["p"][0]), float(s["lo"][0]),
-                                                float(s["hi"][0]), ", ".join(moves), queue_pos, len(queue),
-                                                capacity, fm["metrics"]),
-                       "txn": choice, "changes": changes}
-                st.session_state["fraud_whatif_result"] = res
-                st.session_state.setdefault("fraud_whatif_log", []).append({
-                    "Transaction": choice, "Changes": "; ".join(f"{k} {a}→{b2}" for k, a, b2 in changes) or "none",
-                    "Baseline": pct(res["base"]), "Scenario": pct(res["p"]),
-                    "Change (pts)": round((res["p"] - res["base"]) * 100, 1)})
+                    scen = one.copy()
+                    scen["transaction_amt"] = amt
+                    scen["txn_count_24h"] = cnt
+                    if new_cust:
+                        scen[["hours_since_previous_txn", "customer_avg_amt_30d", "customer_amount_zscore"]] = np.nan
+                        scen["prior_txn_count"], scen["cold_start_flag"] = 0, True
+                    else:
+                        scen["hours_since_previous_txn"] = hrs
+                        scen["customer_avg_amt_30d"] = avg if avg > 0 else np.nan
+                        scen["prior_txn_count"], scen["cold_start_flag"] = prior, False
+                        scen["customer_amount_zscore"] = zscore
+                    b, sc = fraud_scores(one, fm), fraud_scores(scen, fm)
+                    names = [("transaction_amt", "Amount", "${:,.2f}", "scenario input"),
+                             ("txn_count_24h", "Transactions in prior 24h", "{:.0f}", "scenario input"),
+                             ("hours_since_previous_txn", "Hours since previous", "{:,.1f}", "scenario input"),
+                             ("cold_start_flag", "New customer", "{}", "fixed characteristic"),
+                             ("customer_avg_amt_30d", "Customer avg amount (30 days)", "${:,.2f}",
+                              "fixed characteristic"),
+                             ("prior_txn_count", "Prior transaction count", "{:,.0f}", "fixed characteristic")]
+                    show = lambda v, f_, col: ("none" if pd.isna(v) else
+                                               ("Yes" if v else "No") if col == "cold_start_flag" else f_.format(v))
+                    rows_cmp, changes = [], []
+                    for col, nm, f_, role in names:
+                        a0, a1 = one[col].iloc[0], scen[col].iloc[0]
+                        same = (pd.isna(a0) and pd.isna(a1)) or (not pd.isna(a0) and not pd.isna(a1) and a0 == a1)
+                        chg = "—" if same else (f"{a1 - a0:+,.2f}" if col not in ("cold_start_flag",) and
+                                                not pd.isna(a0) and not pd.isna(a1) else "changed")
+                        rows_cmp.append({"Item": nm, "Role": role, "Baseline": show(a0, f_, col),
+                                         "Scenario": show(a1, f_, col), "Difference": chg})
+                        if not same:
+                            changes.append((nm, show(a0, f_, col), show(a1, f_, col)))
+                    pb, ps = float(b["p"][0]), float(sc["p"][0])
+                    exp_b, exp_s = pb * float(one["transaction_amt"].iloc[0]), ps * amt
+                    others = queue[queue.transaction_id != choice]["exposure"].sort_values(ascending=False)
+                    pos_b, pos_s = int((others > exp_b).sum()) + 1, int((others > exp_s).sum()) + 1
+                    cutoff = float(others.iloc[capacity - 1]) if len(others) >= capacity else 0.0
+                    displaced = float(others.iloc[capacity - 1]) if len(others) >= capacity else 0.0
+                    rows_cmp += [
+                        {"Item": "Fraud probability", "Role": "prediction", "Baseline": pct(pb), "Scenario": pct(ps),
+                         "Difference": f"{(ps - pb) * 100:+.1f} pts"},
+                        {"Item": "90% model range", "Role": "prediction",
+                         "Baseline": f"{pct(b['lo'][0])}–{pct(b['hi'][0])}",
+                         "Scenario": f"{pct(sc['lo'][0])}–{pct(sc['hi'][0])}", "Difference": "—"},
+                        {"Item": "Expected exposure (probability × amount)", "Role": "prediction",
+                         "Baseline": f"${exp_b:,.2f}", "Scenario": f"${exp_s:,.2f}", "Difference": f"{exp_s - exp_b:+,.2f}"},
+                        {"Item": "Rank in today's queue (expected exposure)", "Role": "decision",
+                         "Baseline": f"#{pos_b} of {len(queue)}", "Scenario": f"#{pos_s} of {len(queue)}",
+                         "Difference": "no change" if pos_s == pos_b else
+                         f"{abs(pos_s - pos_b)} places {'lower' if pos_s > pos_b else 'higher'} priority"},
+                        {"Item": f"Inside today's capacity of {capacity}", "Role": "decision",
+                         "Baseline": "Yes" if pos_b <= capacity else "No",
+                         "Scenario": "Yes" if pos_s <= capacity else "No", "Difference": "—"},
+                    ]
+                    delta = sc["contrib"][0] - b["contrib"][0]
+                    labels = [fm["labels"][f] for f in fm["features"]]
+                    moves = ", ".join(f"{labels[i]} ({'+' if delta[i] > 0 else '−'})"
+                                      for i in np.argsort(-np.abs(delta))[:3] if abs(delta[i]) > 0.01)
+                    weak = fm["metrics"].get("error_analysis", {}).get("weak_segments", [])
+                    product = f"product={one['product_cd'].iloc[0]}"
+                    caution = (f"Caution: the model was weaker on {product.replace('product=', 'product code ')} "
+                               f"transactions in the final test." if product in weak else "")
+                    res = {"txn": choice, "errors": None, "warnings": warnings, "table": rows_cmp,
+                           "base": pb, "p": ps,
+                           "summary": fraud_summary(changes, {"p": pb, "exp": exp_b},
+                                                    {"p": ps, "lo": float(sc["lo"][0]), "hi": float(sc["hi"][0]),
+                                                     "exp": exp_s},
+                                                    {"pos_base": pos_b, "pos_scen": pos_s, "displaced": displaced,
+                                                     "cutoff": cutoff, "moves": moves},
+                                                    capacity, fm["metrics"], warnings, caution)}
+                    st.session_state["fraud_whatif_result"] = res
+                    st.session_state.setdefault("fraud_whatif_log", []).append({
+                        "Transaction": choice,
+                        "Changes": "; ".join(f"{k} {a}→{c}" for k, a, c in changes) or "none",
+                        "Baseline": pct(pb), "Scenario": pct(ps), "Change (pts)": round((ps - pb) * 100, 1),
+                        "Rank": f"#{pos_b} → #{pos_s}"})
 
             res = st.session_state.get("fraud_whatif_result")
             if res and res["txn"] == choice:
-                k1, k2, k3 = st.columns(3)
-                k1.metric("Baseline (as recorded)", pct(res["base"]))
-                k2.metric("Scenario", pct(res["p"]), delta=f"{(res['p'] - res['base']) * 100:+.1f} pts",
-                          delta_color="inverse")
-                k3.metric("Scenario 90% model range", f"{pct(res['lo'])} – {pct(res['hi'])}")
-                st.markdown("#### Scenario summary")
-                st.info(res["summary"])
+                if res.get("errors"):
+                    st.error("**Scenario not run — the inputs are inconsistent:**\n\n"
+                             + "\n".join(f"- {e}" for e in res["errors"]))
+                else:
+                    k1, k2, k3 = st.columns(3)
+                    k1.metric("Baseline (as recorded)", pct(res["base"]))
+                    k2.metric("Scenario", pct(res["p"]), delta=f"{(res['p'] - res['base']) * 100:+.1f} pts",
+                              delta_color="inverse")
+                    k3.metric("Queue rank", res["table"][-2]["Baseline"].split(" of ")[0] + " → "
+                              + res["table"][-2]["Scenario"].split(" of ")[0],
+                              help="Rank 1 is reviewed first; a larger number means lower priority.")
+                    if res["warnings"]:
+                        st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]))
+                    st.markdown("#### Baseline vs. scenario")
+                    st.dataframe(pd.DataFrame(res["table"]), hide_index=True, width="stretch",
+                         height=35 * (len(res["table"]) + 1) + 3)
+                    st.markdown("#### Scenario summary")
+                    st.info(res["summary"].replace("$", "\\$"))
             if st.session_state.get("fraud_whatif_log"):
                 with st.expander("Scenarios run in this session"):
                     st.dataframe(pd.DataFrame(st.session_state["fraud_whatif_log"]), hide_index=True,
@@ -971,36 +1178,77 @@ elif page == "Alert investigation":
 # 10. PAGE — FRAUD RISK MODEL (KPI 1)
 # ============================================================
 elif page == "Fraud risk model":
+    ev = load_evaluation()
     page_header("Predictive model · KPI 1", "Fraud risk model",
-                "How well the fraud model ranks risk on later days, and which predictors drive it overall.",
-                [("Logistic regression", ""), ("Tested on later 30% of time", "neutral")])
+                "How well the fraud model ranks risk on later days, where it is weaker, and what drives it.",
+                [("Logistic regression", ""), ("Evaluated on later, unseen days", "neutral")])
     if not fm:
-        st.info("Run `python3 src/modeling/train_fraud_model.py` to build the model.")
+        st.info("Run `python3 src/modeling/evaluate_week11.py` to build the model.")
         st.stop()
     m = fm["metrics"]
+    cap = pd.DataFrame(m["capture_at_capacity"])
+
+    def cap_at(policy_prefix, k=50):
+        r = cap[(cap.policy.str.startswith(policy_prefix)) & (cap.capacity == k)]
+        return float(r.fraud_value_captured.iloc[0]) if len(r) else None
+
+    cal = pd.DataFrame(m["calibration"])
+    top_rate = float(cal.sort_values("mean_predicted").iloc[-1]["observed_rate"]) if len(cal) else None
+    base_rate = m["split"]["test_fraud_rate"]
+    ea = m.get("error_analysis", {})
+    with st.container(border=True):
+        st.markdown("#### How much to trust this model")
+        p4, p1 = cap_at("P4"), cap_at("P1")
+        bullets = []
+        if p4 is not None and p1 is not None:
+            bullets.append(f"On days the model never saw, reviewing the **50 alerts with the highest expected "
+                           f"exposure** caught about **{p4:.0%} of fraud dollars**, compared with {p1:.0%} when "
+                           f"reviewing the largest amounts first.")
+        if top_rate is not None:
+            bullets.append(f"Among the **10% of transactions it rated riskiest, {top_rate:.0%} were fraud** — about "
+                           f"{top_rate / base_rate:.0f}× the overall rate of {base_rate:.1%}. Most high-scoring "
+                           f"alerts are still legitimate, so every alert needs an analyst's review.")
+        if ea.get("weak_segments"):
+            bullets.append("It is **weaker for** " + ", ".join(w.replace("_", " ").replace("=", ": ")
+                                                              for w in ea["weak_segments"])
+                           + " — treat its ranking there with extra caution.")
+        worst = ea.get("worst_days_capture_at_50") or {}
+        if worst:
+            wd, wv = min(worst.items(), key=lambda kv: kv[1])
+            bullets.append(f"Results vary by day: on the worst test day (day {wd}) the top 50 alerts caught only "
+                           f"{wv:.0%} of that day's fraud dollars, so judge the policy over many days, not one.")
+        bullets.append("Results come from public IEEE-CIS data with generated customer identities: they show "
+                       "performance in this simulated setting, not proven performance at a real bank.")
+        st.markdown("\n".join(f"- {x}" for x in bullets))
+
     st.markdown(
         "**KPI 1 — Fraud value captured at capacity:** the share of a day's fraud dollars that falls inside the "
-        "alerts the team actually reviews. The team can review only a limited number of alerts, so this KPI "
-        "measures how much loss the review effort can prevent with the same staff. It links directly to "
-        "operational performance and to the bank's fraud losses.")
-    with st.expander("Model card: predictors, algorithm and evaluation"):
+        "alerts the team actually reviews. It measures how much loss the review effort can prevent with the same "
+        "staff, and links directly to the bank's fraud losses.")
+    with st.expander("Model card: predictors, their roles, algorithm and evaluation design"):
+        extended = fm.get("feature_set") == "week11_extended"
         st.markdown(
             "- **Predicts:** the probability that a transaction is fraudulent, at the moment it happens.\n"
-            "- **Predictors:** 7 point-in-time behavioral features built in this project (amount, hours since "
-            "previous transaction, transactions in prior 24h, customer's 30-day average, amount z-score, "
-            "prior transaction count, new-customer flag) and IEEE-CIS source attributes recorded with the "
-            "transaction (anonymized counts C1–C14, time deltas D1 and D15, product code, credit vs. debit). "
-            "All are available before a review decision, so the model uses no future information.\n"
-            "- **Algorithm:** logistic regression on standardized predictors. Chosen because it produces "
-            "probabilities that can be checked for calibration (needed for expected exposure = probability × "
-            "amount) and because every prediction can be explained exactly. Gradient boosting was trained as a "
-            "comparison: it is more accurate, but its predictions cannot be explained as directly.\n"
-            f"- **Evaluation:** trained on the earliest 70% of time ({m['split']['train_rows']:,} transactions), "
-            f"tested on the latest 30% ({m['split']['test_rows']:,}).\n"
+            "- **Algorithm:** logistic regression on standardized predictors — probabilities that can be checked "
+            "for calibration (needed for expected exposure = probability × amount) and exact explanations for "
+            "every prediction.\n"
+            f"- **Evaluation design:** {m['split'].get('design', 'chronological split')}. All modeling choices were "
+            f"made on the validation period; the final test ({m['split']['test_rows']:,} transactions) was run "
+            f"once.\n"
             "- **Uncertainty:** 30 bootstrap refits give a 90% range for each prediction.")
+        roles = pd.DataFrame([
+            ["Transaction amount, transactions in prior 24h, hours since previous", "Scenario input",
+             "Describe the case; editable in what-if"],
+            ["New-customer flag, customer's 30-day average, prior transaction count, amount z-score",
+             "Fixed characteristic", "Fixed for a given customer; editable only to test sensitivity"],
+            ["IEEE-CIS counts C1–C14, time deltas D1/D15, product code, credit vs. debit"
+             + (", D10–D14, purchaser email, card network" if extended else ""), "Fixed (recorded)",
+             "Held at recorded values"],
+            ["Queue policy, review capacity", "Decision lever", "Set by the Lead in the settings toolbar"],
+        ], columns=["Variables", "Role", "How the app treats them"])
+        st.dataframe(roles, hide_index=True, width="stretch")
 
-    st.subheader("KPI 1 on held-out test days")
-    cap = pd.DataFrame(m["capture_at_capacity"])
+    st.subheader("KPI 1 on the final test days")
     cap_chart = (alt.Chart(cap).mark_line(point=True)
                  .encode(x=alt.X("capacity:O", title="Review capacity (alerts per day)",
                                  axis=alt.Axis(labelAngle=0)),
@@ -1008,24 +1256,21 @@ elif page == "Fraud risk model":
                          color=alt.Color("policy:N", title="Policy",
                                          legend=alt.Legend(orient="right", labelLimit=320)),
                          tooltip=["policy", "capacity", alt.Tooltip("fraud_value_captured:Q", format=".1%")])
-                 .properties(height=360))
+                 .properties(height=340))
     st.altair_chart(cap_chart, width="stretch")
     pivot = cap.pivot(index="policy", columns="capacity", values="fraud_value_captured")
     st.dataframe(pivot.style.format("{:.1%}"), width="stretch")
-    st.caption("Average across test days of: fraud dollars in the top-K transactions ÷ all fraud dollars that "
-               "day. 'Model A' uses behavioral features only, showing what the IEEE-CIS attributes add.")
 
     p_left, p_right = st.columns(2)
     with p_left:
-        st.subheader("Predictive performance")
+        st.subheader("Model vs. baselines")
         comp = pd.DataFrame(m["comparison"]).T.rename(columns={"pr_auc": "PR-AUC", "roc_auc": "ROC-AUC",
                                                                "brier": "Brier score"})
         st.dataframe(comp.style.format("{:.3f}", na_rep="—"), width="stretch")
-        st.caption(f"PR-AUC of a random ranking equals the test fraud rate ({m['split']['test_fraud_rate']:.3f}). "
+        st.caption(f"PR-AUC of a random ranking equals the test fraud rate ({base_rate:.3f}). "
                    "Lower Brier score means better-calibrated probabilities.")
     with p_right:
         st.subheader("Calibration")
-        cal = pd.DataFrame(m["calibration"])
         lim = float(max(cal["mean_predicted"].max(), cal["observed_rate"].max())) * 1.05
         diag = alt.Chart(pd.DataFrame({"x": [0, lim], "y": [0, lim]})).mark_line(strokeDash=[4, 4], color="gray") \
             .encode(x="x:Q", y="y:Q")
@@ -1038,57 +1283,102 @@ elif page == "Fraud risk model":
         st.caption("Each point is one tenth of test transactions. Points near the dashed line mean the "
                    "probabilities can be read at face value.")
 
+    if ea.get("segments"):
+        st.subheader("Where the model is weaker (final test)")
+        seg = pd.DataFrame(ea["segments"]).rename(columns={
+            "segment": "Segment", "level": "Group", "transactions": "Transactions", "fraud_rate": "Fraud rate",
+            "avg_predicted": "Avg predicted", "pr_auc": "PR-AUC",
+            "fraud_caught_in_top5pct": "Fraud cases in top 5%", "fraud_dollars_caught_in_top5pct":
+                "Fraud $ in top 5%"})
+        st.dataframe(seg.style.format({"Fraud rate": "{:.1%}", "Avg predicted": "{:.1%}", "PR-AUC": "{:.3f}",
+                                       "Fraud cases in top 5%": "{:.0%}", "Fraud $ in top 5%": "{:.0%}"},
+                                      na_rep="—"), hide_index=True, width="stretch")
+        st.caption(f"Overall, {ea['overall_fraud_caught_in_top5pct']:.0%} of fraud cases fall in the model's top 5% "
+                   f"of probabilities. Groups well below that, or where the average prediction differs from the "
+                   f"actual fraud rate, are where users should rely less on the ranking.")
+
     st.subheader("Overall predictor importance (all test transactions)")
     imp = pd.DataFrame(m["global_importance"]).head(15)
     signed = imp["mean_abs_contribution"] * np.sign(imp["coef_per_sd"])
     st.altair_chart(contribution_chart(imp["label"].tolist(), signed.to_numpy(),
                                        "Average size of contribution (log-odds), signed by direction"),
                     width="stretch")
-    top = imp.iloc[0]
     st.markdown(
-        f"**Reading it.** Bar length is how much a predictor moves predictions on average; colour shows "
-        f"whether higher values of it go with higher or lower fraud probability. **{top['label']}** matters "
-        f"most overall. Odds ratios per one standard deviation are in the table below. Among the behavioral "
-        f"features, a larger transaction amount raises the estimate, while a longer gap since the previous "
-        f"transaction and a higher usual spend lower it.")
-    st.dataframe(imp[["label", "mean_abs_contribution", "odds_ratio_per_sd"]].rename(columns={
-        "label": "Predictor", "mean_abs_contribution": "Avg |contribution|",
-        "odds_ratio_per_sd": "Odds ratio per 1 SD"}).style.format({"Avg |contribution|": "{:.3f}",
-                                                                 "Odds ratio per 1 SD": "{:.2f}"}),
-        hide_index=True, width="stretch")
-    st.caption("Overall importance summarizes the whole test period; it is different from the contributions to "
-               "a single alert shown on the Alert investigation page. " + NOT_CAUSAL
-               + " C1–C14 are anonymized and correlated, so opposite signs on related counts (for example C1 "
-                 "and C14) partly offset each other and should be read together.")
+        f"**Reading it.** Bar length is how much a predictor moves predictions on average across all test "
+        f"transactions; colour shows whether higher values go with higher or lower fraud probability. "
+        f"**{imp.iloc[0]['label']}** matters most overall. This is the overall view; the contributions behind a "
+        f"single alert are on the Alert investigation page.")
+    st.caption(NOT_CAUSAL + " C1–C14 are anonymized and correlated, so opposite signs on related counts partly "
+                            "offset each other and should be read together.")
+
+    if ev:
+        fe = ev["fraud"]
+        with st.expander("Week 11 evaluation details: leakage checks, improvement attempt and selection"):
+            st.markdown("**Data-leakage checks**")
+            st.dataframe(pd.DataFrame(fe["leakage_checks"]).assign(
+                result=lambda d: np.where(d["result"], "Pass", "Flag")), hide_index=True, width="stretch")
+            st.markdown("Known caveats: " + " ".join(fe["leakage_caveats"]))
+            st.markdown("**Improvement attempt (decided on the validation period)**")
+            st.dataframe(pd.DataFrame(fe["development"]).drop(columns=["feature_set"]).style.format(
+                {"pr_auc": "{:.3f}", "roc_auc": "{:.3f}", "brier": "{:.4f}", "captured_at_50": "{:.1%}"},
+                na_rep="—"), hide_index=True, width="stretch")
+            st.markdown(f"**Decision.** {fe['selection']['decision']}")
+            st.markdown("**Final test (run once, after the decision)**")
+            st.dataframe(pd.DataFrame(fe["final_test"]).style.format(
+                {"pr_auc": "{:.3f}", "roc_auc": "{:.3f}", "brier": "{:.4f}", "captured_at_50": "{:.1%}"},
+                na_rep="—"), hide_index=True, width="stretch")
 
 # ============================================================
 # 11. PAGE — ALERT VOLUME FORECAST (KPI 2)
 # ============================================================
 else:
+    ev = load_evaluation()
     page_header("Predictive model · KPI 2", "Alert volume forecast",
                 "Tomorrow's alert load with a 90% range, the chance of overflow, and staffing scenarios.",
                 [("Poisson regression", ""), (f"Capacity {capacity}", "neutral")])
     if not vm:
-        st.info("Run `python3 src/modeling/train_alert_volume_model.py` to build the model.")
+        st.info("Run `python3 src/modeling/evaluate_week11.py` to build the model.")
         st.stop()
     m = vm["metrics"]
+    uses_lags = vm.get("feature_set") == "week11_lags"
     history = {int(k): float(v) for k, v in vm["history"].items()}
+    vranges = vm.get("ranges") or volume_ranges_from_history(history)
+    ea = m.get("error_analysis", {})
+    busy = next((r for r in ea.get("segments", []) if r["level"] == "busy days"), None)
+    busy_bias = busy["bias_actual_minus_forecast"] if busy else None
+    sel = m["comparison"]["Poisson regression (selected)"]
+    best_base = min((v["mae"] for k, v in m["comparison"].items() if k.startswith("Baseline")), default=None)
+    with st.container(border=True):
+        st.markdown("#### How much to trust this forecast")
+        bullets = [f"On test days it was off by about **{sel['mae']:.0f} alerts** on average "
+                   f"({sel['mape']:.0%})" + (f", compared with {best_base:.0f} for the best simple baseline."
+                                              if best_base else "."),
+                   f"Its **90% range contained the actual count on {m['interval_coverage_test']:.0%} of test days** — "
+                   f"plan around the range, not the single number."]
+        if busy_bias and busy_bias > 1:
+            bullets.append(f"On the **busiest days it under-forecast by about {busy_bias:.0f} alerts**, so when "
+                           f"capacity is tight use the upper end of the range.")
+        bullets.append("It assumes the alerting rules and transaction mix stay as they were. After a rule change "
+                       "or an unusual event, forecasts should not be relied on until the model is refit.")
+        st.markdown("\n".join(f"- {x}" for x in bullets))
+
     st.markdown(
         "**KPI 2 — Daily alert overflow:** the number of alerts beyond the team's review capacity on a day. "
-        "Overflow alerts may miss the 24-hour review deadline, so fraud can go unreviewed. Forecasting it the "
-        "evening before lets the Lead adjust staffing or deferral rules before the queue builds up, which "
-        "supports service levels and controls labour cost.")
-    with st.expander("Model card: predictors, algorithm and evaluation"):
+        "Forecasting it the evening before lets the Lead adjust staffing or deferral rules before the queue "
+        "builds up.")
+    with st.expander("Model card: predictors, their roles, algorithm and evaluation design"):
         st.markdown(
             "- **Predicts:** how many alerts the rules will create tomorrow.\n"
-            "- **Predictors:** alerts yesterday, average alerts over the previous 7 days, simulated weekday and "
-            "a trend term. All are known the evening before, so the forecast is usable for planning.\n"
-            "- **Algorithm:** Poisson regression, a model for counts: predictions are never negative and its "
-            "spread grows with the level. Daily counts vary more than a pure Poisson allows "
-            f"(variance ≈ {m['dispersion_phi']:.1f} × mean), so the 90% range uses a negative binomial "
-            "distribution with that measured spread.\n"
-            f"- **Evaluation:** trained on days {m['split']['train_days'][0]}–{m['split']['train_days'][1]}, "
-            f"tested one day ahead on days {m['split']['test_days'][0]}–{m['split']['test_days'][1]}.")
+            "- **Algorithm:** Poisson regression with a negative-binomial 90% range "
+            f"(variance ≈ {m['dispersion_phi']:.1f} × mean).\n"
+            f"- **Evaluation design:** {m['split'].get('design', 'chronological split')}; final test on days "
+            f"{m['split']['test_days'][0]}–{m['split']['test_days'][1]}, run once.")
+        st.dataframe(pd.DataFrame([
+            ["Review capacity", "Decision lever", "Set by the Lead; changes overflow, not the forecast"],
+            ["Alerts yesterday, 7-day average" + (", alerts two days ago, same weekday last week" if uses_lags else ""),
+             "External condition", "Scenario assumptions in what-if"],
+            ["Day number and weekday", "Fixed", "Calendar; not editable"],
+        ], columns=["Variables", "Role", "How the app treats them"]), hide_index=True, width="stretch")
 
     tp = pd.DataFrame(m["test_predictions"])
     band = alt.Chart(tp).mark_area(opacity=0.25).encode(
@@ -1100,14 +1390,13 @@ else:
         tooltip=["day", "Series", alt.Tooltip("alerts:Q", format=".0f")])
     cap_rule = alt.Chart(pd.DataFrame({"y": [capacity]})).mark_rule(strokeDash=[6, 4], color="#C0392B") \
         .encode(y="y:Q")
-    st.subheader("Forecast vs. actual on held-out test days")
-    st.altair_chart((band + lines + cap_rule).properties(height=320), width="stretch")
-    st.caption(f"Shaded band: 90% prediction range. Red dashed line: your capacity of {capacity}. The range "
-               f"contained the actual count on {m['interval_coverage_test']:.0%} of test days.")
+    st.subheader("Forecast vs. actual on the final test days")
+    st.altair_chart((band + lines + cap_rule).properties(height=300), width="stretch")
+    st.caption(f"Shaded band: 90% prediction range. Red dashed line: your capacity of {capacity}.")
 
     a_left, a_right = st.columns(2)
     with a_left:
-        st.subheader("Forecast accuracy")
+        st.subheader("Model vs. baselines")
         comp = pd.DataFrame(m["comparison"]).T.rename(columns={"mae": "Avg error (alerts)", "mape": "Avg % error"})
         st.dataframe(comp.style.format({"Avg error (alerts)": "{:.1f}", "Avg % error": "{:.1%}"}),
                      width="stretch")
@@ -1116,12 +1405,19 @@ else:
         ov = pd.DataFrame(m["overflow_kpi"]).rename(columns={
             "capacity": "Capacity", "actual_overflow_days": "Actual overflow days",
             "predicted_overflow_days_p_over_50pct": "Predicted overflow days",
-            "overflow_day_accuracy": "Overflow-day accuracy",
-            "avg_actual_overflow_alerts": "Avg actual overflow", "avg_predicted_overflow_alerts":
-                "Avg predicted overflow"})
+            "overflow_day_accuracy": "Overflow-day accuracy", "missed_overflow_days": "Missed overflow days",
+            "false_alarm_days": "False alarms", "avg_actual_overflow_alerts": "Avg actual overflow",
+            "avg_predicted_overflow_alerts": "Avg predicted overflow"})
         st.dataframe(ov.style.format({"Overflow-day accuracy": "{:.0%}", "Avg actual overflow": "{:.1f}",
-                                      "Avg predicted overflow": "{:.1f}"}), hide_index=True,
-                     width="stretch")
+                                      "Avg predicted overflow": "{:.1f}"}), hide_index=True, width="stretch")
+    if ea.get("segments"):
+        st.subheader("Where the forecast is weaker (final test)")
+        st.dataframe(pd.DataFrame(ea["segments"]).rename(columns={
+            "segment": "Segment", "level": "Group", "days": "Days", "avg_alerts": "Avg alerts", "mae": "Avg error",
+            "bias_actual_minus_forecast": "Actual − forecast", "coverage_90": "Inside 90% range"}).style.format(
+            {"Avg alerts": "{:.0f}", "Avg error": "{:.1f}", "Actual − forecast": "{:+.1f}",
+             "Inside 90% range": "{:.0%}"}), hide_index=True, width="stretch")
+        st.caption("Positive 'Actual − forecast' means the model under-forecast that group of days.")
 
     st.subheader("Overall predictor importance (all test days)")
     imp = pd.DataFrame(m["global_importance"])
@@ -1132,13 +1428,27 @@ else:
     st.caption("Overall importance across test days; the forecast below shows contributions for one day. "
                + NOT_CAUSAL)
 
+    if ev:
+        ve = ev["volume"]
+        with st.expander("Week 11 evaluation details: leakage checks, improvement attempt and selection"):
+            st.dataframe(pd.DataFrame(ve["leakage_checks"]).assign(
+                result=lambda d: np.where(d["result"], "Pass", "Flag")), hide_index=True, width="stretch")
+            st.markdown("Known caveats: " + " ".join(ve["leakage_caveats"]))
+            st.dataframe(pd.DataFrame(ve["development"]).drop(columns=["feature_set"]).style.format(
+                {"mae": "{:.1f}", "mape": "{:.1%}", "coverage_90": "{:.0%}"}, na_rep="—"),
+                hide_index=True, width="stretch")
+            st.markdown(f"**Decision.** {ve['selection']['decision']}")
+            st.dataframe(pd.DataFrame(ve["final_test"]).style.format(
+                {"mae": "{:.1f}", "mape": "{:.1%}", "coverage_90": "{:.0%}"}, na_rep="—"),
+                hide_index=True, width="stretch")
+
     st.divider()
-    st.subheader("Forecast and what-if for a chosen day")
+    st.subheader("Forecast a day and compare a staffing scenario")
     last = max(history)
     fday = st.selectbox("Forecast for", list(range(min(history) + 7, last + 2))[::-1],
                         format_func=lambda d: f"Day {d}" + (" (next day after the data)" if d > last else ""))
-    lag1_0, lag7_0 = volume_inputs(history, fday)
-    base = volume_forecast(vm, lag1_0, lag7_0, fday, capacity)
+    inp0 = volume_lags(history, fday)
+    base = volume_forecast(vm, inp0, fday, capacity)
     b1, b2, b3, b4 = st.columns(4)
     b1.metric("Baseline forecast", f"{base['mu']:.0f} alerts")
     b2.metric("90% range", f"{base['lo']:.0f} – {base['hi']:.0f}")
@@ -1156,35 +1466,81 @@ else:
                "raises or lowers the forecast relative to an average training day; effects multiply.")
 
     with st.form("volume_whatif"):
-        v1, v2, v3 = st.columns(3)
-        lag1_s = v1.number_input("Alerts yesterday", min_value=0, value=int(round(lag1_0)), step=5)
-        lag7_s = v2.number_input("Average alerts, previous 7 days", min_value=0.0, value=round(float(lag7_0), 1),
-                                 step=5.0)
-        cap_s = v3.number_input("Review capacity", min_value=1, value=int(capacity), step=5)
+        st.markdown("**① Decision lever** · *you control this*")
+        cap_s = st.number_input("Review capacity (alerts the team can review)", min_value=1,
+                                value=int(capacity), step=5)
+        st.markdown("**② External conditions** · *scenario assumptions — the Lead cannot set these*")
+        v1, v2, v3, v4 = st.columns(4)
+        lag1_s = v1.number_input("Alerts yesterday", min_value=0, value=int(round(inp0["lag1"])), step=5)
+        lag7_s = v2.number_input("Average alerts, previous 7 days", min_value=0.0,
+                                 value=round(float(inp0["lag7_mean"]), 1), step=5.0)
+        lag2_s = v3.number_input("Alerts two days ago", min_value=0, value=int(round(inp0["lag2"])), step=5,
+                                 disabled=not uses_lags, help=None if uses_lags else "Not used by the current model.")
+        lag7d_s = v4.number_input("Alerts same weekday last week", min_value=0, value=int(round(inp0["lag7"])),
+                                  step=5, disabled=not uses_lags,
+                                  help=None if uses_lags else "Not used by the current model.")
+        st.caption(f"③ Fixed: the calendar day (Day {fday}, simulated weekday {fday % 7}) and the trend.")
         run_v = st.form_submit_button("Run scenario", type="primary")
     if run_v:
-        new = volume_forecast(vm, lag1_s, lag7_s, fday, int(cap_s))
-        base_c = volume_forecast(vm, lag1_0, lag7_0, fday, int(cap_s))
-        changes = [(k, a, b) for k, a, b in [
-            ("Alerts yesterday", f"{lag1_0:.0f}", f"{lag1_s:.0f}"),
-            ("7-day average", f"{lag7_0:.1f}", f"{lag7_s:.1f}"),
-            ("Capacity", f"{capacity}", f"{int(cap_s)}")] if a != b]
-        st.session_state["volume_whatif_result"] = {"day": fday, "new": new, "base": base_c,
-                                             "summary": volume_summary(changes, base_c, new, int(cap_s), m)}
-        st.session_state.setdefault("volume_whatif_log", []).append({
-            "Day": fday, "Changes": "; ".join(f"{k} {a}→{b}" for k, a, b in changes) or "none",
-            "Baseline": round(base_c["mu"]), "Scenario": round(new["mu"]),
-            "Overflow chance": pct(new["p_over"])})
+        if abs(lag7_s - inp0["lag7_mean"]) < 0.05:  # the field shows one decimal; treat as unchanged
+            lag7_s = inp0["lag7_mean"]
+        inp1 = {"lag1": float(lag1_s), "lag7_mean": float(lag7_s),
+                "lag2": float(lag2_s) if uses_lags else inp0["lag2"],
+                "lag7": float(lag7d_s) if uses_lags else inp0["lag7"]}
+        errors, warnings = check_volume_inputs(inp1, int(cap_s), vranges, uses_lags, inp0)
+        if errors:
+            st.session_state["volume_whatif_result"] = {"day": fday, "errors": errors}
+        else:
+            new = volume_forecast(vm, inp1, fday, int(cap_s))
+            base_c = volume_forecast(vm, inp0, fday, capacity)
+            base_c["exp_over_newcap_base"] = volume_forecast(vm, inp1, fday, capacity)["exp_over"]
+            items = [("Review capacity", "decision lever", capacity, int(cap_s), "{:,.0f}"),
+                     ("Alerts yesterday", "external condition", inp0["lag1"], inp1["lag1"], "{:,.0f}"),
+                     ("Average alerts, previous 7 days", "external condition", inp0["lag7_mean"], inp1["lag7_mean"],
+                      "{:,.1f}")]
+            if uses_lags:
+                items += [("Alerts two days ago", "external condition", inp0["lag2"], inp1["lag2"], "{:,.0f}"),
+                          ("Alerts same weekday last week", "external condition", inp0["lag7"], inp1["lag7"],
+                           "{:,.0f}")]
+            table = [{"Item": n, "Role": r, "Baseline": f_.format(a0), "Scenario": f_.format(a1),
+                      "Difference": "—" if a0 == a1 else f"{a1 - a0:+,.1f}"} for n, r, a0, a1, f_ in items]
+            changes = [(n, f_.format(a0), f_.format(a1)) for n, r, a0, a1, f_ in items if a0 != a1]
+            table += [
+                {"Item": "Forecast alerts", "Role": "prediction", "Baseline": f"{base_c['mu']:.0f}",
+                 "Scenario": f"{new['mu']:.0f}", "Difference": f"{new['mu'] - base_c['mu']:+.0f}"},
+                {"Item": "90% range", "Role": "prediction", "Baseline": f"{base_c['lo']:.0f}–{base_c['hi']:.0f}",
+                 "Scenario": f"{new['lo']:.0f}–{new['hi']:.0f}", "Difference": "—"},
+                {"Item": "Chance of overflow", "Role": "KPI 2", "Baseline": pct(base_c["p_over"]),
+                 "Scenario": pct(new["p_over"]), "Difference": f"{(new['p_over'] - base_c['p_over']) * 100:+.1f} pts"},
+                {"Item": "Expected alerts beyond capacity", "Role": "KPI 2", "Baseline": f"{base_c['exp_over']:.0f}",
+                 "Scenario": f"{new['exp_over']:.0f}", "Difference": f"{new['exp_over'] - base_c['exp_over']:+.0f}"},
+            ]
+            st.session_state["volume_whatif_result"] = {
+                "day": fday, "errors": None, "warnings": warnings, "table": table, "new": new, "base": base_c,
+                "summary": volume_summary(changes, base_c, new, capacity, int(cap_s), m, warnings, busy_bias)}
+            st.session_state.setdefault("volume_whatif_log", []).append({
+                "Day": fday, "Changes": "; ".join(f"{k} {a}→{c}" for k, a, c in changes) or "none",
+                "Baseline": round(base_c["mu"]), "Scenario": round(new["mu"]),
+                "Overflow chance": pct(new["p_over"])})
     res = st.session_state.get("volume_whatif_result")
     if res and res["day"] == fday:
-        k1, k2, k3 = st.columns(3)
-        k1.metric("Baseline forecast", f"{res['base']['mu']:.0f} alerts")
-        k2.metric("Scenario forecast", f"{res['new']['mu']:.0f} alerts",
-                  delta=f"{res['new']['mu'] - res['base']['mu']:+.0f}", delta_color="inverse")
-        k3.metric("Scenario chance of overflow", pct(res["new"]["p_over"]),
-                  delta=f"{(res['new']['p_over'] - res['base']['p_over']) * 100:+.1f} pts", delta_color="inverse")
-        st.markdown("#### Scenario summary")
-        st.info(res["summary"])
+        if res.get("errors"):
+            st.error("**Scenario not run — the inputs are inconsistent:**\n\n"
+                     + "\n".join(f"- {e}" for e in res["errors"]))
+        else:
+            k1, k2, k3 = st.columns(3)
+            k1.metric("Baseline forecast", f"{res['base']['mu']:.0f} alerts")
+            k2.metric("Scenario forecast", f"{res['new']['mu']:.0f} alerts",
+                      delta=f"{res['new']['mu'] - res['base']['mu']:+.0f}", delta_color="inverse")
+            k3.metric("Scenario chance of overflow", pct(res["new"]["p_over"]),
+                      delta=f"{(res['new']['p_over'] - res['base']['p_over']) * 100:+.1f} pts", delta_color="inverse")
+            if res["warnings"]:
+                st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]))
+            st.markdown("#### Baseline vs. scenario")
+            st.dataframe(pd.DataFrame(res["table"]), hide_index=True, width="stretch",
+                         height=35 * (len(res["table"]) + 1) + 3)
+            st.markdown("#### Scenario summary")
+            st.info(res["summary"].replace("$", "\\$"))
     if st.session_state.get("volume_whatif_log"):
         with st.expander("Scenarios run in this session"):
             st.dataframe(pd.DataFrame(st.session_state["volume_whatif_log"]), hide_index=True,
