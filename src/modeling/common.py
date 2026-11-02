@@ -1,4 +1,4 @@
-"""Shared helpers for the Week 10 predictive models.
+"""Shared helpers for the predictive models (Weeks 10-11).
 
 Both models are linear in a transformed scale (log-odds for fraud, log-count for alert volume),
 so each predictor's contribution to one prediction is exact and easy to explain:
@@ -64,17 +64,53 @@ FRAUD_FEATURE_LABELS = {
     "credit_card": "Credit card (vs. debit/other)",
 }
 
+# Week 11 candidate improvement: more IEEE-CIS attributes recorded with the transaction.
+EXTRA_D = ["d10", "d11", "d12", "d13", "d14"]
+EMAIL_GROUPS = ["gmail.com", "yahoo.com", "hotmail.com", "anonymous.com", "outlook.com"]  # other = reference
+CARD_NETWORKS = ["mastercard", "american express", "discover"]  # visa and other = reference
+EXTENDED_FEATURES = ([f"log_{d}" for d in EXTRA_D] + [f"{d}_missing" for d in EXTRA_D]
+                     + [f"email_{e.split('.')[0]}" for e in EMAIL_GROUPS] + ["email_missing"]
+                     + [f"card_{n.replace(' ', '_')}" for n in CARD_NETWORKS])
+FRAUD_FEATURE_LABELS.update({
+    **{f"log_{d}": f"IEEE time delta {d.upper()} (anonymized)" for d in EXTRA_D},
+    **{f"{d}_missing": f"{d.upper()} not recorded" for d in EXTRA_D},
+    **{f"email_{e.split('.')[0]}": f"Purchaser email {e}" for e in EMAIL_GROUPS},
+    "email_missing": "Purchaser email not recorded",
+    **{f"card_{n.replace(' ', '_')}": f"Card network: {n.title()}" for n in CARD_NETWORKS},
+})
+FEATURE_SETS = {
+    "week10": FRAUD_FEATURES,
+    "week11_extended": FRAUD_FEATURES + EXTENDED_FEATURES,
+}
+# Every source column any feature set may need (the app always loads all of them).
+SOURCE_COLUMNS_ALL = SOURCE_COLUMNS + EXTRA_D + ["p_emaildomain", "card4"]
+
+# Raw inputs a user can edit in the what-if analysis (used for plausible-range checks).
+RAW_INPUTS = ["transaction_amt", "hours_since_previous_txn", "txn_count_24h", "customer_avg_amt_30d",
+              "prior_txn_count"]
+
+
+def raw_ranges(df):
+    """1st-99th percentile of each editable raw input: the range the model has seen often."""
+    out = {}
+    for c in RAW_INPUTS:
+        v = df[c].astype(float).dropna()
+        out[c] = {"p01": float(v.quantile(0.01)), "p99": float(v.quantile(0.99)),
+                  "min": float(v.min()), "max": float(v.max())}
+    return out
+
 
 def _log(df, col):
     return np.log1p(df[col].astype(float).clip(lower=0))
 
 
-def fraud_design(df, fill=None):
-    """Turn raw columns into the model's predictor matrix (columns in FRAUD_FEATURES order).
+def fraud_design(df, fill=None, feature_set="week10"):
+    """Turn raw columns into the model's predictor matrix (columns in FEATURE_SETS[feature_set] order).
 
     Behavioral inputs: transaction_amt, hours_since_previous_txn, txn_count_24h, customer_avg_amt_30d,
     customer_amount_zscore, prior_txn_count, cold_start_flag.
-    Source inputs: c1..c14, d1, d15, product_cd, card6.
+    Source inputs: c1..c14, d1, d15, product_cd, card6 (plus d10-d14, p_emaildomain, card4 for
+    the week11_extended set).
     Missing numeric values are filled with training medians (z-score with 0); indicator
     predictors (cold_start, d15_missing) tell the model when a value was not available.
     """
@@ -94,6 +130,16 @@ def fraud_design(df, fill=None):
         + [(product == p).astype(float) for p in PRODUCTS]
         + [(df["card6"].astype(str).str.lower() == "credit").astype(float)]
     )
+    if feature_set == "week11_extended":
+        email = df["p_emaildomain"].astype(str).str.lower()
+        network = df["card4"].astype(str).str.lower()
+        extra = ([_log(df, d) for d in EXTRA_D] + [df[d].isna().astype(float) for d in EXTRA_D]
+                 + [(email == e).astype(float) for e in EMAIL_GROUPS]
+                 + [df["p_emaildomain"].isna().astype(float)]
+                 + [(network == n).astype(float) for n in CARD_NETWORKS])
+        X = np.column_stack([X] + extra)
+    elif feature_set != "week10":
+        raise ValueError(f"Unknown feature set: {feature_set}")
     if fill is None:
         fill = np.nanmedian(X, axis=0)
         fill[FRAUD_FEATURES.index("amount_zscore")] = 0.0  # no history -> neutral
@@ -112,18 +158,35 @@ VOLUME_FEATURE_LABELS = {
     "lag7_mean": "Average alerts, previous 7 days",
     "trend": "Day number (trend)",
     **{f"dow_{d}": f"Simulated weekday {d}" for d in DOW_LEVELS},
+    "lag2": "Alerts two days ago",
+    "lag7": "Alerts on the same weekday last week",
+}
+VOLUME_SETS = {
+    "week10": VOLUME_FEATURES,
+    "week11_lags": ["lag1", "lag7_mean", "lag2", "lag7", "trend"] + [f"dow_{d}" for d in DOW_LEVELS],
 }
 
 
-def volume_design(lag1, lag7_mean, day):
+def volume_design(lag1, lag7_mean, day, lag2=None, lag7=None, feature_set="week10"):
     """Predictor matrix for the daily alert-count model."""
     lag1 = np.asarray(lag1, dtype=float)
     lag7_mean = np.asarray(lag7_mean, dtype=float)
     day = np.asarray(day, dtype=float)
     dow = day.astype(int) % 7
-    cols = [np.log1p(lag1), np.log1p(lag7_mean), day / 100.0]
-    cols += [(dow == d).astype(float) for d in DOW_LEVELS]
+    cols = [np.log1p(lag1), np.log1p(lag7_mean)]
+    if feature_set == "week11_lags":
+        cols += [np.log1p(np.asarray(lag2, dtype=float)), np.log1p(np.asarray(lag7, dtype=float))]
+    elif feature_set != "week10":
+        raise ValueError(f"Unknown feature set: {feature_set}")
+    cols += [day / 100.0] + [(dow == d).astype(float) for d in DOW_LEVELS]
     return np.column_stack(cols)
+
+
+def volume_lags(history, day):
+    """Inputs known the evening before `day`, from a {day: alert count} history."""
+    prev = [history.get(d, np.nan) for d in range(day - 7, day)]
+    return {"lag1": float(history.get(day - 1, np.nan)), "lag7_mean": float(np.nanmean(prev)),
+            "lag2": float(history.get(day - 2, np.nan)), "lag7": float(history.get(day - 7, np.nan))}
 
 
 # ------------------------------------------------------------------

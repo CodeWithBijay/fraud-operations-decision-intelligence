@@ -1,0 +1,6 @@
+model,feature_set,mae,mape,coverage_90
+"Week 10 model (yesterday, 7-day average, weekday, trend)",week10,13.832019537045543,0.14297208074718507,1.0
+Candidate: + alerts two days ago and same weekday last week,week11_lags,13.89707973207993,0.13851236325107172,0.9615384615384616
+Baseline: same as yesterday,-,24.5,0.2779621274832191,
+Baseline: previous 7-day average,-,24.208791208791208,0.2954322229430898,
+Baseline: same weekday last week,-,31.73076923076923,0.34979546917563453,

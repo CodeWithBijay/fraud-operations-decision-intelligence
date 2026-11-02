@@ -1,0 +1,729 @@
+{
+  "generated_at": "2026-11-02T06:49:34+00:00",
+  "design": {
+    "split": "60% development / 15% validation / 25% final test, by time",
+    "note": "All Week 11 choices were made on validation data; the final test was run once."
+  },
+  "fraud": {
+    "split": {
+      "development": {
+        "rows": 354324,
+        "first_day": 1,
+        "last_day": 101,
+        "fraud_rate": 0.03383344057980831
+      },
+      "validation": {
+        "rows": 88581,
+        "first_day": 101,
+        "last_day": 130,
+        "fraud_rate": 0.040358541899504406
+      },
+      "final_test": {
+        "rows": 147635,
+        "first_day": 130,
+        "last_day": 182,
+        "fraud_rate": 0.03454465404544993
+      }
+    },
+    "leakage_checks": [
+      {
+        "check": "Time order: development < validation < final test",
+        "result": true,
+        "detail": ""
+      },
+      {
+        "check": "History features use only earlier transactions (hours since previous > 0)",
+        "result": true,
+        "detail": "0 violations of 501,015"
+      },
+      {
+        "check": "Transactions in prior 24h never exceed prior transaction count",
+        "result": true,
+        "detail": "0 violations"
+      },
+      {
+        "check": "Fraud label is not a predictor",
+        "result": true,
+        "detail": ""
+      },
+      {
+        "check": "No single predictor separates fraud almost perfectly (AUC < 0.90)",
+        "result": true,
+        "detail": "strongest single predictor: IEEE count C4 (anonymized), AUC 0.679"
+      }
+    ],
+    "leakage_caveats": [
+      "Alert-rule thresholds (Week 9) were percentiles of the full period, so the rule-score baseline carries slight look-ahead; the fraud model does not use the rule score.",
+      "C and D variables are anonymized by the data provider; their timing cannot be verified independently. They are treated as recorded at transaction time, as documented by the provider."
+    ],
+    "development": [
+      {
+        "model": "Week 10 model (behavior + IEEE attributes)",
+        "feature_set": "week10",
+        "predictors": 29,
+        "pr_auc": 0.47106428404475215,
+        "roc_auc": 0.8556907262325704,
+        "brier": 0.027635797448586984,
+        "captured_at_50": 0.3554407685541914
+      },
+      {
+        "model": "Candidate: + more IEEE attributes (D10-D14, email, card network)",
+        "feature_set": "week11_extended",
+        "predictors": 48,
+        "pr_auc": 0.4891316483669668,
+        "roc_auc": 0.8621598590572546,
+        "brier": 0.027054071841164585,
+        "captured_at_50": 0.3715111177496923
+      },
+      {
+        "model": "Behavior features only",
+        "feature_set": "-",
+        "predictors": 7,
+        "pr_auc": 0.08382300264452117,
+        "roc_auc": 0.6517913914427103,
+        "brier": 0.038199013337221796,
+        "captured_at_50": 0.20018173363982197
+      },
+      {
+        "model": "Baseline: largest amount",
+        "feature_set": "-",
+        "predictors": 1,
+        "pr_auc": 0.0491565306888232,
+        "roc_auc": 0.5029030398347858,
+        "brier": null,
+        "captured_at_50": 0.2626210527455164
+      },
+      {
+        "model": "Baseline: Week 9 rule score",
+        "feature_set": "-",
+        "predictors": 1,
+        "pr_auc": 0.05836127277129291,
+        "roc_auc": 0.5377813297917761,
+        "brier": null,
+        "captured_at_50": 0.1688366609731471
+      }
+    ],
+    "selection": {
+      "rule": "Keep candidate if validation capture@50 (expected exposure) improves by >= 0.5 points; otherwise keep the Week 10 specification.",
+      "decision": "Validation capture at 50 reviews/day: Week 10 35.5%, candidate 37.2% (+1.6 points). Rule: keep the candidate only if the gain is at least 0.5 points. Selected: Candidate: + more IEEE attributes (D10-D14, email, card network).",
+      "selected_feature_set": "week11_extended",
+      "candidate_retained": true
+    },
+    "error_analysis": {
+      "top5pct_threshold": 0.14092793526619218,
+      "overall_fraud_caught_in_top5pct": 0.4284313725490196,
+      "segments": [
+        {
+          "segment": "product",
+          "level": "C",
+          "transactions": 15251,
+          "fraud_rate": 0.13015539964592485,
+          "avg_predicted": 0.11908090826891914,
+          "pr_auc": 0.6922531328090349,
+          "fraud_caught_in_top5pct": 0.7506297229219143,
+          "fraud_dollars_caught_in_top5pct": 0.8061961454084693
+        },
+        {
+          "segment": "product",
+          "level": "H",
+          "transactions": 4148,
+          "fraud_rate": 0.06027000964320154,
+          "avg_predicted": 0.05712795041325767,
+          "pr_auc": 0.37431667027045445,
+          "fraud_caught_in_top5pct": 0.512,
+          "fraud_dollars_caught_in_top5pct": 0.5482960332935596
+        },
+        {
+          "segment": "product",
+          "level": "R",
+          "transactions": 6634,
+          "fraud_rate": 0.046578233343382576,
+          "avg_predicted": 0.045641204342485406,
+          "pr_auc": 0.5590464738293163,
+          "fraud_caught_in_top5pct": 0.6440129449838188,
+          "fraud_dollars_caught_in_top5pct": 0.7085132634176434
+        },
+        {
+          "segment": "product",
+          "level": "S",
+          "transactions": 4018,
+          "fraud_rate": 0.0547536087605774,
+          "avg_predicted": 0.0907930778231704,
+          "pr_auc": 0.39135896216906635,
+          "fraud_caught_in_top5pct": 0.509090909090909,
+          "fraud_dollars_caught_in_top5pct": 0.6167953667953668
+        },
+        {
+          "segment": "product",
+          "level": "W",
+          "transactions": 117584,
+          "fraud_rate": 0.019866648523608654,
+          "avg_predicted": 0.022978706220649084,
+          "pr_auc": 0.07207835116382755,
+          "fraud_caught_in_top5pct": 0.1095890410958904,
+          "fraud_dollars_caught_in_top5pct": 0.19079792422169997
+        },
+        {
+          "segment": "card_type",
+          "level": "credit",
+          "transactions": 33820,
+          "fraud_rate": 0.06667652276759314,
+          "avg_predicted": 0.0763190456453941,
+          "pr_auc": 0.48371993149723386,
+          "fraud_caught_in_top5pct": 0.5835920177383592,
+          "fraud_dollars_caught_in_top5pct": 0.4192803208256721
+        },
+        {
+          "segment": "card_type",
+          "level": "debit",
+          "transactions": 113072,
+          "fraud_rate": 0.025028300551860762,
+          "avg_predicted": 0.024942941774248405,
+          "pr_auc": 0.30033890981673594,
+          "fraud_caught_in_top5pct": 0.30353356890459365,
+          "fraud_dollars_caught_in_top5pct": 0.2552308890765656
+        },
+        {
+          "segment": "card_type",
+          "level": "missing",
+          "transactions": 743,
+          "fraud_rate": 0.020188425302826378,
+          "avg_predicted": 0.02843844259593903,
+          "pr_auc": 0.518330976303103,
+          "fraud_caught_in_top5pct": 0.6666666666666666,
+          "fraud_dollars_caught_in_top5pct": 0.4908092998346126
+        },
+        {
+          "segment": "amount_band",
+          "level": "under $50",
+          "transactions": 47703,
+          "fraud_rate": 0.040102299645724586,
+          "avg_predicted": 0.03951823430665871,
+          "pr_auc": 0.5341456748190392,
+          "fraud_caught_in_top5pct": 0.5389440669106116,
+          "fraud_dollars_caught_in_top5pct": 0.5043801421881144
+        },
+        {
+          "segment": "amount_band",
+          "level": "$50-200",
+          "transactions": 75372,
+          "fraud_rate": 0.028246563710661785,
+          "avg_predicted": 0.03251025560579833,
+          "pr_auc": 0.3122554574250903,
+          "fraud_caught_in_top5pct": 0.3790511977454204,
+          "fraud_dollars_caught_in_top5pct": 0.3762692707678017
+        },
+        {
+          "segment": "amount_band",
+          "level": "$200-1,000",
+          "transactions": 22385,
+          "fraud_rate": 0.04458342640160822,
+          "avg_predicted": 0.0425484947164191,
+          "pr_auc": 0.2583353259160291,
+          "fraud_caught_in_top5pct": 0.3276553106212425,
+          "fraud_dollars_caught_in_top5pct": 0.30560434281314103
+        },
+        {
+          "segment": "amount_band",
+          "level": "over $1,000",
+          "transactions": 2175,
+          "fraud_rate": 0.027586206896551724,
+          "avg_predicted": 0.06190290942345447,
+          "pr_auc": 0.19707752510617466,
+          "fraud_caught_in_top5pct": 0.3333333333333333,
+          "fraud_dollars_caught_in_top5pct": 0.3410190360930208
+        },
+        {
+          "segment": "history",
+          "level": "new customer",
+          "transactions": 11398,
+          "fraud_rate": 0.03105808036497631,
+          "avg_predicted": 0.030352488914047935,
+          "pr_auc": 0.45784004632954217,
+          "fraud_caught_in_top5pct": 0.4774011299435028,
+          "fraud_dollars_caught_in_top5pct": 0.40779621122830567
+        },
+        {
+          "segment": "history",
+          "level": "1-4 prior",
+          "transactions": 22104,
+          "fraud_rate": 0.030808903365906623,
+          "avg_predicted": 0.029723685579849002,
+          "pr_auc": 0.3038223761293836,
+          "fraud_caught_in_top5pct": 0.3333333333333333,
+          "fraud_dollars_caught_in_top5pct": 0.2807095052500362
+        },
+        {
+          "segment": "history",
+          "level": "5-19 prior",
+          "transactions": 34162,
+          "fraud_rate": 0.02707686903577074,
+          "avg_predicted": 0.02780067614060837,
+          "pr_auc": 0.25179682499378125,
+          "fraud_caught_in_top5pct": 0.28216216216216217,
+          "fraud_dollars_caught_in_top5pct": 0.26456357263231856
+        },
+        {
+          "segment": "history",
+          "level": "20+ prior",
+          "transactions": 79971,
+          "fraud_rate": 0.03926423328456566,
+          "avg_predicted": 0.043389372220668285,
+          "pr_auc": 0.4293771060701389,
+          "fraud_caught_in_top5pct": 0.48662420382165605,
+          "fraud_dollars_caught_in_top5pct": 0.3983117097636805
+        }
+      ],
+      "weak_segments": [
+        "product=W"
+      ],
+      "largest_calibration_gaps": [
+        {
+          "segment": "product",
+          "level": "S",
+          "avg_predicted": 0.0907930778231704,
+          "fraud_rate": 0.0547536087605774
+        },
+        {
+          "segment": "amount_band",
+          "level": "over $1,000",
+          "avg_predicted": 0.06190290942345447,
+          "fraud_rate": 0.027586206896551724
+        },
+        {
+          "segment": "product",
+          "level": "C",
+          "avg_predicted": 0.11908090826891914,
+          "fraud_rate": 0.13015539964592485
+        }
+      ],
+      "worst_days_capture_at_50": {
+        "182": 0.03634374642241246,
+        "151": 0.13809443284161455,
+        "146": 0.13826237955668125,
+        "168": 0.15066581729481687,
+        "166": 0.1662743269292363
+      },
+      "days_with_zero_capture_at_50": 0,
+      "test_days": 53
+    },
+    "final_test": [
+      {
+        "model": "Week 10 model (behavior + IEEE attributes)",
+        "pr_auc": 0.36662127521185506,
+        "roc_auc": 0.8403981038025061,
+        "brier": 0.02649692954800824,
+        "captured_at_50": 0.32992404068266135
+      },
+      {
+        "model": "Candidate: + more IEEE attributes (D10-D14, email, card network) \u2014 SELECTED",
+        "pr_auc": 0.3826403641053112,
+        "roc_auc": 0.8453561285600991,
+        "brier": 0.026057867210415562,
+        "captured_at_50": 0.3272915783037483
+      },
+      {
+        "model": "Baseline: largest amount",
+        "pr_auc": 0.03790793167652047,
+        "roc_auc": 0.48691920044406023,
+        "brier": null,
+        "captured_at_50": 0.1971043074896037
+      },
+      {
+        "model": "Baseline: Week 9 rule score",
+        "pr_auc": 0.03955950867439454,
+        "roc_auc": 0.4989557838219303,
+        "brier": null,
+        "captured_at_50": 0.15515738832407514
+      },
+      {
+        "model": "Baseline: random",
+        "pr_auc": 0.035321332405192606,
+        "roc_auc": 0.5049717847078495,
+        "brier": null,
+        "captured_at_50": 0.019945096700604452
+      }
+    ],
+    "kpi1_capture": [
+      {
+        "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
+        "capacity": 25,
+        "fraud_value_captured": 0.21641664148525358,
+        "precision": 0.23547169811320748
+      },
+      {
+        "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
+        "capacity": 50,
+        "fraud_value_captured": 0.3272915783037483,
+        "precision": 0.22716981132075473
+      },
+      {
+        "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
+        "capacity": 100,
+        "fraud_value_captured": 0.4816977228573252,
+        "precision": 0.2186792452830189
+      },
+      {
+        "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
+        "capacity": 200,
+        "fraud_value_captured": 0.6452914611640967,
+        "precision": 0.17896226415094338
+      },
+      {
+        "policy": "P3 \u00b7 Model probability",
+        "capacity": 25,
+        "fraud_value_captured": 0.11840833130241371,
+        "precision": 0.7381132075471699
+      },
+      {
+        "policy": "P3 \u00b7 Model probability",
+        "capacity": 50,
+        "fraud_value_captured": 0.20909625601777293,
+        "precision": 0.5599999999999999
+      },
+      {
+        "policy": "P3 \u00b7 Model probability",
+        "capacity": 100,
+        "fraud_value_captured": 0.31663191246314576,
+        "precision": 0.3783018867924528
+      },
+      {
+        "policy": "P3 \u00b7 Model probability",
+        "capacity": 200,
+        "fraud_value_captured": 0.44126051682507184,
+        "precision": 0.24150943396226413
+      },
+      {
+        "policy": "P2 \u00b7 Rule risk score",
+        "capacity": 25,
+        "fraud_value_captured": 0.08810045268516863,
+        "precision": 0.05207547169811322
+      },
+      {
+        "policy": "P2 \u00b7 Rule risk score",
+        "capacity": 50,
+        "fraud_value_captured": 0.15515738832407514,
+        "precision": 0.05433962264150945
+      },
+      {
+        "policy": "P2 \u00b7 Rule risk score",
+        "capacity": 100,
+        "fraud_value_captured": 0.246949891590151,
+        "precision": 0.06528301886792452
+      },
+      {
+        "policy": "P2 \u00b7 Rule risk score",
+        "capacity": 200,
+        "fraud_value_captured": 0.444319824545528,
+        "precision": 0.06009433962264152
+      },
+      {
+        "policy": "P1 \u00b7 Largest amount",
+        "capacity": 25,
+        "fraud_value_captured": 0.08904968028991098,
+        "precision": 0.03547169811320755
+      },
+      {
+        "policy": "P1 \u00b7 Largest amount",
+        "capacity": 50,
+        "fraud_value_captured": 0.1971043074896037,
+        "precision": 0.05245283018867925
+      },
+      {
+        "policy": "P1 \u00b7 Largest amount",
+        "capacity": 100,
+        "fraud_value_captured": 0.3524016732496655,
+        "precision": 0.06132075471698113
+      },
+      {
+        "policy": "P1 \u00b7 Largest amount",
+        "capacity": 200,
+        "fraud_value_captured": 0.4857661034912426,
+        "precision": 0.054245283018867926
+      },
+      {
+        "policy": "P0 \u00b7 Random",
+        "capacity": 25,
+        "fraud_value_captured": 0.011969620400821899,
+        "precision": 0.036981132075471705
+      },
+      {
+        "policy": "P0 \u00b7 Random",
+        "capacity": 50,
+        "fraud_value_captured": 0.019945096700604452,
+        "precision": 0.03849056603773585
+      },
+      {
+        "policy": "P0 \u00b7 Random",
+        "capacity": 100,
+        "fraud_value_captured": 0.04307205293265875,
+        "precision": 0.038867924528301886
+      },
+      {
+        "policy": "P0 \u00b7 Random",
+        "capacity": 200,
+        "fraud_value_captured": 0.08435568344534596,
+        "precision": 0.037924528301886785
+      }
+    ]
+  },
+  "volume": {
+    "split": {
+      "development_days": [
+        8,
+        112
+      ],
+      "validation_days": [
+        113,
+        138
+      ],
+      "test_days": [
+        139,
+        182
+      ]
+    },
+    "leakage_checks": [
+      {
+        "check": "Time order: development < validation < final test days",
+        "result": true,
+        "detail": "{'development_days': [8, 112], 'validation_days': [113, 138], 'test_days': [139, 182]}"
+      },
+      {
+        "check": "Predictors are known the evening before (lagged counts only)",
+        "result": true,
+        "detail": "yesterday, two days ago, same weekday last week, previous 7-day average, weekday, trend"
+      }
+    ],
+    "leakage_caveats": [
+      "Alert counts come from rules whose thresholds were set on the full period; this is a slight look-ahead in the target series itself."
+    ],
+    "development": [
+      {
+        "model": "Week 10 model (yesterday, 7-day average, weekday, trend)",
+        "feature_set": "week10",
+        "mae": 13.832019537045543,
+        "mape": 0.14297208074718507,
+        "coverage_90": 1.0
+      },
+      {
+        "model": "Candidate: + alerts two days ago and same weekday last week",
+        "feature_set": "week11_lags",
+        "mae": 13.89707973207993,
+        "mape": 0.13851236325107172,
+        "coverage_90": 0.9615384615384616
+      },
+      {
+        "model": "Baseline: same as yesterday",
+        "feature_set": "-",
+        "mae": 24.5,
+        "mape": 0.2779621274832191,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: previous 7-day average",
+        "feature_set": "-",
+        "mae": 24.208791208791208,
+        "mape": 0.2954322229430898,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: same weekday last week",
+        "feature_set": "-",
+        "mae": 31.73076923076923,
+        "mape": 0.34979546917563453,
+        "coverage_90": null
+      }
+    ],
+    "selection": {
+      "rule": "Keep candidate if validation MAE falls by >= 2%; otherwise keep Week 10.",
+      "decision": "Validation MAE: Week 10 13.8, candidate 13.9 (0.5% higher). Rule: keep the candidate only if MAE falls by at least 2%. Selected: Week 10 model (yesterday, 7-day average, weekday, trend).",
+      "selected_feature_set": "week10",
+      "candidate_retained": false
+    },
+    "error_analysis": {
+      "segments": [
+        {
+          "segment": "level",
+          "level": "quiet days",
+          "days": 15,
+          "avg_alerts": 63.0,
+          "mae": 14.298008716950811,
+          "bias_actual_minus_forecast": -8.897635173880994,
+          "coverage_90": 0.9333333333333333
+        },
+        {
+          "segment": "level",
+          "level": "typical days",
+          "days": 14,
+          "avg_alerts": 95.85714285714286,
+          "mae": 18.675499253760133,
+          "bias_actual_minus_forecast": -9.316338265049223,
+          "coverage_90": 0.9285714285714286
+        },
+        {
+          "segment": "level",
+          "level": "busy days",
+          "days": 15,
+          "avg_alerts": 191.66666666666666,
+          "mae": 90.02699196590734,
+          "bias_actual_minus_forecast": 56.20453133914844,
+          "coverage_90": 0.6666666666666666
+        },
+        {
+          "segment": "weekday",
+          "level": "0",
+          "days": 7,
+          "avg_alerts": 102.57142857142857,
+          "mae": 19.537373588691427,
+          "bias_actual_minus_forecast": 8.855941291617038,
+          "coverage_90": 1.0
+        },
+        {
+          "segment": "weekday",
+          "level": "1",
+          "days": 6,
+          "avg_alerts": 119.66666666666667,
+          "mae": 8.232575647991348,
+          "bias_actual_minus_forecast": -0.6699562977568405,
+          "coverage_90": 1.0
+        },
+        {
+          "segment": "weekday",
+          "level": "2",
+          "days": 6,
+          "avg_alerts": 78.5,
+          "mae": 19.417045135860743,
+          "bias_actual_minus_forecast": -0.7249378611696073,
+          "coverage_90": 0.8333333333333334
+        },
+        {
+          "segment": "weekday",
+          "level": "3",
+          "days": 6,
+          "avg_alerts": 198.0,
+          "mae": 151.06381560799434,
+          "bias_actual_minus_forecast": 147.14715105325922,
+          "coverage_90": 0.6666666666666666
+        },
+        {
+          "segment": "weekday",
+          "level": "4",
+          "days": 6,
+          "avg_alerts": 140.33333333333334,
+          "mae": 52.689772421557926,
+          "bias_actual_minus_forecast": -32.68137244036114,
+          "coverage_90": 0.5
+        },
+        {
+          "segment": "weekday",
+          "level": "5",
+          "days": 6,
+          "avg_alerts": 92.83333333333333,
+          "mae": 37.98837450979119,
+          "bias_actual_minus_forecast": -22.09418262625819,
+          "coverage_90": 0.8333333333333334
+        },
+        {
+          "segment": "weekday",
+          "level": "6",
+          "days": 7,
+          "avg_alerts": 95.42857142857143,
+          "mae": 10.460126390785865,
+          "bias_actual_minus_forecast": -4.096727605611036,
+          "coverage_90": 1.0
+        }
+      ],
+      "largest_misses": [
+        {
+          "day": 171,
+          "actual": 665.0,
+          "forecast": 56.08548117363958
+        },
+        {
+          "day": 164,
+          "actual": 340.0,
+          "forecast": 64.84376988067365
+        },
+        {
+          "day": 173,
+          "actual": 87.0,
+          "forecast": 243.7868205282048
+        },
+        {
+          "day": 165,
+          "actual": 145.0,
+          "forecast": 280.168289261208
+        },
+        {
+          "day": 172,
+          "actual": 369.0,
+          "forecast": 448.06752637151146
+        }
+      ]
+    },
+    "final_test": [
+      {
+        "model": "Week 10 model (yesterday, 7-day average, weekday, trend) \u2014 SELECTED",
+        "mae": 41.507545449898046,
+        "mape": 0.2664321092350483,
+        "coverage_90": 0.8409090909090909
+      },
+      {
+        "model": "Candidate: + alerts two days ago and same weekday last week",
+        "mae": 44.367601000910554,
+        "mape": 0.3027802812314481,
+        "coverage_90": 0.8636363636363636
+      },
+      {
+        "model": "Baseline: same as yesterday",
+        "mae": 56.77272727272727,
+        "mape": 0.4248967282508181,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: previous 7-day average",
+        "mae": 60.65584415584415,
+        "mape": 0.5698639800628927,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: same weekday last week",
+        "mae": 59.06818181818182,
+        "mape": 0.715636082464032,
+        "coverage_90": null
+      }
+    ],
+    "kpi2_overflow": [
+      {
+        "capacity": 50,
+        "actual_overflow_days": 39,
+        "predicted_overflow_days_p_over_50pct": 39,
+        "overflow_day_accuracy": 0.9090909090909091,
+        "missed_overflow_days": 2,
+        "false_alarm_days": 2,
+        "avg_actual_overflow_alerts": 68.06818181818181,
+        "avg_predicted_overflow_alerts": 55.72664166375833
+      },
+      {
+        "capacity": 100,
+        "actual_overflow_days": 21,
+        "predicted_overflow_days_p_over_50pct": 15,
+        "overflow_day_accuracy": 0.7272727272727273,
+        "missed_overflow_days": 9,
+        "false_alarm_days": 3,
+        "avg_actual_overflow_alerts": 31.90909090909091,
+        "avg_predicted_overflow_alerts": 23.979148545757575
+      },
+      {
+        "capacity": 150,
+        "actual_overflow_days": 3,
+        "predicted_overflow_days_p_over_50pct": 3,
+        "overflow_day_accuracy": 0.9090909090909091,
+        "missed_overflow_days": 2,
+        "false_alarm_days": 2,
+        "avg_actual_overflow_alerts": 21.0,
+        "avg_predicted_overflow_alerts": 12.81313592288768
+      }
+    ]
+  }
+}

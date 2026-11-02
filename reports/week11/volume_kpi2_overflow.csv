@@ -1,0 +1,4 @@
+capacity,actual_overflow_days,predicted_overflow_days_p_over_50pct,overflow_day_accuracy,missed_overflow_days,false_alarm_days,avg_actual_overflow_alerts,avg_predicted_overflow_alerts
+50,39,39,0.9090909090909091,2,2,68.06818181818181,55.72664166375833
+100,21,15,0.7272727272727273,9,3,31.90909090909091,23.979148545757575
+150,3,3,0.9090909090909091,2,2,21.0,12.81313592288768

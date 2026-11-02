@@ -1,0 +1,187 @@
+{
+  "generated_at": "2026-11-02T06:46:10+00:00",
+  "design": {
+    "split": "60% development / 15% validation / 25% final test, by time",
+    "note": "All Week 11 choices were made on validation data; the final test was run once."
+  },
+  "fraud": {
+    "split": {
+      "development": {
+        "rows": 354324,
+        "first_day": 1,
+        "last_day": 101,
+        "fraud_rate": 0.03383344057980831
+      },
+      "validation": {
+        "rows": 88581,
+        "first_day": 101,
+        "last_day": 130,
+        "fraud_rate": 0.040358541899504406
+      },
+      "final_test": {
+        "rows": 147635,
+        "first_day": 130,
+        "last_day": 182,
+        "fraud_rate": 0.03454465404544993
+      }
+    },
+    "leakage_checks": [
+      {
+        "check": "Time order: development < validation < final test",
+        "result": true,
+        "detail": ""
+      },
+      {
+        "check": "History features use only earlier transactions (hours since previous > 0)",
+        "result": true,
+        "detail": "0 violations of 501,015"
+      },
+      {
+        "check": "Transactions in prior 24h never exceed prior transaction count",
+        "result": true,
+        "detail": "0 violations"
+      },
+      {
+        "check": "Fraud label is not a predictor",
+        "result": true,
+        "detail": ""
+      },
+      {
+        "check": "No single predictor separates fraud almost perfectly (AUC < 0.90)",
+        "result": true,
+        "detail": "strongest single predictor: IEEE count C4 (anonymized), AUC 0.679"
+      }
+    ],
+    "leakage_caveats": [
+      "Alert-rule thresholds (Week 9) were percentiles of the full period, so the rule-score baseline carries slight look-ahead; the fraud model does not use the rule score.",
+      "C and D variables are anonymized by the data provider; their timing cannot be verified independently. They are treated as recorded at transaction time, as documented by the provider."
+    ],
+    "development": [
+      {
+        "model": "Week 10 model (behavior + IEEE attributes)",
+        "feature_set": "week10",
+        "predictors": 29,
+        "pr_auc": 0.47106428404475215,
+        "roc_auc": 0.8556907262325704,
+        "brier": 0.027635797448586984,
+        "captured_at_50": 0.3554407685541914
+      },
+      {
+        "model": "Candidate: + more IEEE attributes (D10-D14, email, card network)",
+        "feature_set": "week11_extended",
+        "predictors": 48,
+        "pr_auc": 0.4891316483669668,
+        "roc_auc": 0.8621598590572546,
+        "brier": 0.027054071841164585,
+        "captured_at_50": 0.3715111177496923
+      },
+      {
+        "model": "Behavior features only",
+        "feature_set": "-",
+        "predictors": 7,
+        "pr_auc": 0.08382300264452117,
+        "roc_auc": 0.6517913914427103,
+        "brier": 0.038199013337221796,
+        "captured_at_50": 0.20018173363982197
+      },
+      {
+        "model": "Baseline: largest amount",
+        "feature_set": "-",
+        "predictors": 1,
+        "pr_auc": 0.0491565306888232,
+        "roc_auc": 0.5029030398347858,
+        "brier": null,
+        "captured_at_50": 0.2626210527455164
+      },
+      {
+        "model": "Baseline: Week 9 rule score",
+        "feature_set": "-",
+        "predictors": 1,
+        "pr_auc": 0.05836127277129291,
+        "roc_auc": 0.5377813297917761,
+        "brier": null,
+        "captured_at_50": 0.1688366609731471
+      }
+    ],
+    "selection": {
+      "rule": "Keep candidate if validation capture@50 (expected exposure) improves by >= 0.5 points; otherwise keep the Week 10 specification.",
+      "decision": "Validation capture at 50 reviews/day: Week 10 35.5%, candidate 37.2% (+1.6 points). Rule: keep the candidate only if the gain is at least 0.5 points. Selected: Candidate: + more IEEE attributes (D10-D14, email, card network).",
+      "selected_feature_set": "week11_extended",
+      "candidate_retained": true
+    }
+  },
+  "volume": {
+    "split": {
+      "development_days": [
+        8,
+        112
+      ],
+      "validation_days": [
+        113,
+        138
+      ],
+      "test_days": [
+        139,
+        182
+      ]
+    },
+    "leakage_checks": [
+      {
+        "check": "Time order: development < validation < final test days",
+        "result": true,
+        "detail": "{'development_days': [8, 112], 'validation_days': [113, 138], 'test_days': [139, 182]}"
+      },
+      {
+        "check": "Predictors are known the evening before (lagged counts only)",
+        "result": true,
+        "detail": "yesterday, two days ago, same weekday last week, previous 7-day average, weekday, trend"
+      }
+    ],
+    "leakage_caveats": [
+      "Alert counts come from rules whose thresholds were set on the full period; this is a slight look-ahead in the target series itself."
+    ],
+    "development": [
+      {
+        "model": "Week 10 model (yesterday, 7-day average, weekday, trend)",
+        "feature_set": "week10",
+        "mae": 13.832019537045543,
+        "mape": 0.14297208074718507,
+        "coverage_90": 1.0
+      },
+      {
+        "model": "Candidate: + alerts two days ago and same weekday last week",
+        "feature_set": "week11_lags",
+        "mae": 13.89707973207993,
+        "mape": 0.13851236325107172,
+        "coverage_90": 0.9615384615384616
+      },
+      {
+        "model": "Baseline: same as yesterday",
+        "feature_set": "-",
+        "mae": 24.5,
+        "mape": 0.2779621274832191,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: previous 7-day average",
+        "feature_set": "-",
+        "mae": 24.208791208791208,
+        "mape": 0.2954322229430898,
+        "coverage_90": null
+      },
+      {
+        "model": "Baseline: same weekday last week",
+        "feature_set": "-",
+        "mae": 31.73076923076923,
+        "mape": 0.34979546917563453,
+        "coverage_90": null
+      }
+    ],
+    "selection": {
+      "rule": "Keep candidate if validation MAE falls by >= 2%; otherwise keep Week 10.",
+      "decision": "Validation MAE: Week 10 13.8, candidate 13.9 (0.5% higher). Rule: keep the candidate only if MAE falls by at least 2%. Selected: Week 10 model (yesterday, 7-day average, weekday, trend).",
+      "selected_feature_set": "week10",
+      "candidate_retained": false
+    }
+  }
+}

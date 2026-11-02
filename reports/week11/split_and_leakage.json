@@ -1,0 +1,49 @@
+{
+  "split": {
+    "development": {
+      "rows": 354324,
+      "first_day": 1,
+      "last_day": 101,
+      "fraud_rate": 0.03383344057980831
+    },
+    "validation": {
+      "rows": 88581,
+      "first_day": 101,
+      "last_day": 130,
+      "fraud_rate": 0.040358541899504406
+    },
+    "final_test": {
+      "rows": 147635,
+      "first_day": 130,
+      "last_day": 182,
+      "fraud_rate": 0.03454465404544993
+    }
+  },
+  "checks": [
+    {
+      "check": "Time order: development < validation < final test",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "History features use only earlier transactions (hours since previous > 0)",
+      "pass": true,
+      "detail": "0 violations of 501,015"
+    },
+    {
+      "check": "Transactions in prior 24h never exceed prior transaction count",
+      "pass": true,
+      "detail": "0 violations"
+    },
+    {
+      "check": "Fraud label is not a predictor",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "No single predictor separates fraud almost perfectly (AUC < 0.90)",
+      "pass": true,
+      "detail": "strongest single predictor: IEEE count C4 (anonymized), AUC 0.679"
+    }
+  ]
+}

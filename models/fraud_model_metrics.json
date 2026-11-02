@@ -1,476 +1,761 @@
 {
   "model": "Logistic regression (fraud probability)",
-  "trained_at": "2026-10-27T18:39:10+00:00",
+  "week": 11,
+  "trained_at": "2026-11-02T06:49:50+00:00",
   "seed": 42,
+  "feature_set": "week11_extended",
   "split": {
-    "cutoff_transaction_dt": 10437998.1,
-    "train_rows": 413378,
-    "test_rows": 177162,
-    "train_fraud_rate": 0.03516878014795175,
-    "test_fraud_rate": 0.034572876802023006
+    "train_rows": 442905,
+    "test_rows": 147635,
+    "validation_rows": 88581,
+    "train_fraud_rate": 0.035138460843747533,
+    "test_fraud_rate": 0.03454465404544993,
+    "design": "60% development / 15% validation / 25% test"
   },
   "comparison": {
     "Logistic regression (selected)": {
-      "pr_auc": 0.39326617875882647,
-      "roc_auc": 0.8423408912715269,
-      "brier": 0.025790218329199505
+      "pr_auc": 0.3826403641053112,
+      "roc_auc": 0.8453561285600991,
+      "brier": 0.026057867210415562
     },
-    "Model A: behavior features only": {
-      "pr_auc": 0.060356338240253535,
-      "roc_auc": 0.6371259136792576,
-      "brier": 0.033062667366889766
+    "Week 10 model (behavior + IEEE attributes)": {
+      "pr_auc": 0.36662127521185506,
+      "roc_auc": 0.8403981038025061,
+      "brier": 0.02649692954800824
     },
-    "Gradient boosting (comparison)": {
-      "pr_auc": 0.46867440186288756,
-      "roc_auc": 0.8776690724396309,
-      "brier": 0.02385740329708324
+    "Baseline: largest amount": {
+      "pr_auc": 0.03790793167652047,
+      "roc_auc": 0.48691920044406023
     },
-    "Week 9 rule score": {
-      "pr_auc": 0.040642588618339845,
-      "roc_auc": 0.5069020306263843
+    "Baseline: Week 9 rule score": {
+      "pr_auc": 0.03955950867439454,
+      "roc_auc": 0.4989557838219303
     },
-    "Transaction amount": {
-      "pr_auc": 0.03857252892040246,
-      "roc_auc": 0.4928946101052488
+    "Baseline: random": {
+      "pr_auc": 0.035321332405192606,
+      "roc_auc": 0.5049717847078495
     }
   },
   "calibration": [
     {
       "bin": 0,
-      "mean_predicted": 0.002708032917363683,
-      "observed_rate": 0.004797651972681605,
-      "n": 17717
+      "mean_predicted": 0.0021229054656619222,
+      "observed_rate": 0.004199403955567597,
+      "n": 14764
     },
     {
       "bin": 1,
-      "mean_predicted": 0.005088356960745821,
-      "observed_rate": 0.004741476631293746,
-      "n": 17716
+      "mean_predicted": 0.004274517993205827,
+      "observed_rate": 0.004538372959425591,
+      "n": 14763
     },
     {
       "bin": 2,
-      "mean_predicted": 0.00751925232673651,
-      "observed_rate": 0.0060397380898622715,
-      "n": 17716
+      "mean_predicted": 0.006398175602856167,
+      "observed_rate": 0.00582497968030344,
+      "n": 14764
     },
     {
       "bin": 3,
-      "mean_predicted": 0.010218478093729482,
-      "observed_rate": 0.008523368706254234,
-      "n": 17716
+      "mean_predicted": 0.008828732012658805,
+      "observed_rate": 0.008060692271218587,
+      "n": 14763
     },
     {
       "bin": 4,
-      "mean_predicted": 0.013371088424277408,
-      "observed_rate": 0.01179724542786182,
-      "n": 17716
+      "mean_predicted": 0.011806500689691735,
+      "observed_rate": 0.011446762395014902,
+      "n": 14764
     },
     {
       "bin": 5,
-      "mean_predicted": 0.017432127692821226,
-      "observed_rate": 0.013321291487920524,
-      "n": 17716
+      "mean_predicted": 0.01564042393931865,
+      "observed_rate": 0.014089277247171983,
+      "n": 14763
     },
     {
       "bin": 6,
-      "mean_predicted": 0.023041769029961624,
-      "observed_rate": 0.019586814179272972,
-      "n": 17716
+      "mean_predicted": 0.02106913912804113,
+      "observed_rate": 0.0203210729526519,
+      "n": 14763
     },
     {
       "bin": 7,
-      "mean_predicted": 0.03215693091010389,
-      "observed_rate": 0.02997290584782118,
-      "n": 17716
+      "mean_predicted": 0.030495538451254744,
+      "observed_rate": 0.02885396911406123,
+      "n": 14764
     },
     {
       "bin": 8,
-      "mean_predicted": 0.053984997837730295,
-      "observed_rate": 0.057575073379995484,
-      "n": 17716
+      "mean_predicted": 0.05305733853250645,
+      "observed_rate": 0.05547652916073969,
+      "n": 14763
     },
     {
       "bin": 9,
-      "mean_predicted": 0.22053245794590062,
-      "observed_rate": 0.1893661455099622,
-      "n": 17717
+      "mean_predicted": 0.21359818504103814,
+      "observed_rate": 0.1926307233811975,
+      "n": 14764
     }
   ],
   "capture_at_capacity": [
     {
       "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
       "capacity": 25,
-      "fraud_value_captured": 0.19924534700261487,
-      "precision": 0.2234920634920635,
-      "fraud_dollars_per_day": 3105.0901269841265
+      "fraud_value_captured": 0.21641664148525358,
+      "precision": 0.23547169811320748
     },
     {
       "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
       "capacity": 50,
-      "fraud_value_captured": 0.33861612371534966,
-      "precision": 0.24920634920634924,
-      "fraud_dollars_per_day": 5265.969952380951
+      "fraud_value_captured": 0.3272915783037483,
+      "precision": 0.22716981132075473
     },
     {
       "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
       "capacity": 100,
-      "fraud_value_captured": 0.4921817189586693,
-      "precision": 0.23174603174603173,
-      "fraud_dollars_per_day": 7772.951238095239
+      "fraud_value_captured": 0.4816977228573252,
+      "precision": 0.2186792452830189
     },
     {
       "policy": "P4 \u00b7 Expected exposure (p \u00d7 amount)",
       "capacity": 200,
-      "fraud_value_captured": 0.6504242037961707,
-      "precision": 0.1846031746031746,
-      "fraud_dollars_per_day": 10210.93911111111
+      "fraud_value_captured": 0.6452914611640967,
+      "precision": 0.17896226415094338
     },
     {
       "policy": "P3 \u00b7 Model probability",
       "capacity": 25,
-      "fraud_value_captured": 0.11269653960663041,
-      "precision": 0.7428571428571429,
-      "fraud_dollars_per_day": 1622.1293650793652
+      "fraud_value_captured": 0.11840833130241371,
+      "precision": 0.7381132075471699
     },
     {
       "policy": "P3 \u00b7 Model probability",
       "capacity": 50,
-      "fraud_value_captured": 0.20465708702179825,
-      "precision": 0.5733333333333333,
-      "fraud_dollars_per_day": 3000.2166825396826
+      "fraud_value_captured": 0.20909625601777293,
+      "precision": 0.5599999999999999
     },
     {
       "policy": "P3 \u00b7 Model probability",
       "capacity": 100,
-      "fraud_value_captured": 0.3162124644126219,
-      "precision": 0.38777777777777783,
-      "fraud_dollars_per_day": 4709.223968253968
+      "fraud_value_captured": 0.31663191246314576,
+      "precision": 0.3783018867924528
     },
     {
       "policy": "P3 \u00b7 Model probability",
       "capacity": 200,
-      "fraud_value_captured": 0.4201679215969886,
-      "precision": 0.24142857142857146,
-      "fraud_dollars_per_day": 6304.035682539683
+      "fraud_value_captured": 0.44126051682507184,
+      "precision": 0.24150943396226413
     },
     {
       "policy": "P2 \u00b7 Rule risk score",
       "capacity": 25,
-      "fraud_value_captured": 0.09353479904913965,
-      "precision": 0.05587301587301588,
-      "fraud_dollars_per_day": 1544.0366666666666
+      "fraud_value_captured": 0.08810045268516863,
+      "precision": 0.05207547169811322
     },
     {
       "policy": "P2 \u00b7 Rule risk score",
       "capacity": 50,
-      "fraud_value_captured": 0.1553279419478874,
-      "precision": 0.056825396825396834,
-      "fraud_dollars_per_day": 2522.565825396825
+      "fraud_value_captured": 0.15515738832407514,
+      "precision": 0.05433962264150945
     },
     {
       "policy": "P2 \u00b7 Rule risk score",
       "capacity": 100,
-      "fraud_value_captured": 0.2568217067955716,
-      "precision": 0.07015873015873014,
-      "fraud_dollars_per_day": 4072.0903015873014
+      "fraud_value_captured": 0.246949891590151,
+      "precision": 0.06528301886792452
     },
     {
       "policy": "P2 \u00b7 Rule risk score",
       "capacity": 200,
-      "fraud_value_captured": 0.4578570376255843,
-      "precision": 0.06404761904761905,
-      "fraud_dollars_per_day": 7554.419793650794
+      "fraud_value_captured": 0.444319824545528,
+      "precision": 0.06009433962264152
     },
     {
       "policy": "P1 \u00b7 Largest amount",
       "capacity": 25,
-      "fraud_value_captured": 0.10170749279680918,
-      "precision": 0.040634920634920635,
-      "fraud_dollars_per_day": 1707.5320634920633
+      "fraud_value_captured": 0.08904968028991098,
+      "precision": 0.03547169811320755
     },
     {
       "policy": "P1 \u00b7 Largest amount",
       "capacity": 50,
-      "fraud_value_captured": 0.2135370680425251,
-      "precision": 0.05873015873015873,
-      "fraud_dollars_per_day": 3524.4761904761904
+      "fraud_value_captured": 0.1971043074896037,
+      "precision": 0.05245283018867925
     },
     {
       "policy": "P1 \u00b7 Largest amount",
       "capacity": 100,
-      "fraud_value_captured": 0.36117486175116814,
-      "precision": 0.06428571428571428,
-      "fraud_dollars_per_day": 5943.502698412698
+      "fraud_value_captured": 0.3524016732496655,
+      "precision": 0.06132075471698113
     },
     {
       "policy": "P1 \u00b7 Largest amount",
       "capacity": 200,
-      "fraud_value_captured": 0.49259257612071794,
-      "precision": 0.055873015873015866,
-      "fraud_dollars_per_day": 7979.969142857142
-    },
-    {
-      "policy": "Model A exposure (behavior only)",
-      "capacity": 25,
-      "fraud_value_captured": 0.08573023793425905,
-      "precision": 0.03873015873015874,
-      "fraud_dollars_per_day": 1446.3696825396823
-    },
-    {
-      "policy": "Model A exposure (behavior only)",
-      "capacity": 50,
-      "fraud_value_captured": 0.1679522217070561,
-      "precision": 0.0488888888888889,
-      "fraud_dollars_per_day": 2796.560888888889
-    },
-    {
-      "policy": "Model A exposure (behavior only)",
-      "capacity": 100,
-      "fraud_value_captured": 0.30200143497068443,
-      "precision": 0.05666666666666666,
-      "fraud_dollars_per_day": 4989.918190476191
-    },
-    {
-      "policy": "Model A exposure (behavior only)",
-      "capacity": 200,
-      "fraud_value_captured": 0.4713867825573982,
-      "precision": 0.05896825396825397,
-      "fraud_dollars_per_day": 7589.836650793652
+      "fraud_value_captured": 0.4857661034912426,
+      "precision": 0.054245283018867926
     },
     {
       "policy": "P0 \u00b7 Random",
       "capacity": 25,
-      "fraud_value_captured": 0.006698855639461889,
-      "precision": 0.036190476190476197,
-      "fraud_dollars_per_day": 115.55080952380952
+      "fraud_value_captured": 0.011969620400821899,
+      "precision": 0.036981132075471705
     },
     {
       "policy": "P0 \u00b7 Random",
       "capacity": 50,
-      "fraud_value_captured": 0.013212721083264331,
-      "precision": 0.035873015873015876,
-      "fraud_dollars_per_day": 228.9285873015873
+      "fraud_value_captured": 0.019945096700604452,
+      "precision": 0.03849056603773585
     },
     {
       "policy": "P0 \u00b7 Random",
       "capacity": 100,
-      "fraud_value_captured": 0.03643464001774413,
-      "precision": 0.03666666666666665,
-      "fraud_dollars_per_day": 558.3767777777776
+      "fraud_value_captured": 0.04307205293265875,
+      "precision": 0.038867924528301886
     },
     {
       "policy": "P0 \u00b7 Random",
       "capacity": 200,
-      "fraud_value_captured": 0.07964215712601436,
-      "precision": 0.036111111111111115,
-      "fraud_dollars_per_day": 1179.7499841269844
+      "fraud_value_captured": 0.08435568344534596,
+      "precision": 0.037924528301886785
     }
   ],
   "global_importance": [
     {
       "feature": "log_c14",
       "label": "IEEE count C14 (anonymized)",
-      "mean_abs_contribution": 1.3797760870354232,
-      "coef_per_sd": -2.311026398549025,
-      "odds_ratio_per_sd": 0.09915942222275198
+      "mean_abs_contribution": 1.326431210265199,
+      "coef_per_sd": -2.2434991999300995,
+      "odds_ratio_per_sd": 0.1060866357888854
     },
     {
       "feature": "log_c1",
       "label": "IEEE count C1 (anonymized)",
-      "mean_abs_contribution": 1.223232901170145,
-      "coef_per_sd": 2.020250944243407,
-      "odds_ratio_per_sd": 7.540216870284329
+      "mean_abs_contribution": 1.118297532487147,
+      "coef_per_sd": 1.8709897984741972,
+      "odds_ratio_per_sd": 6.494721684507047
     },
     {
       "feature": "log_c5",
       "label": "IEEE count C5 (anonymized)",
-      "mean_abs_contribution": 0.765670924511673,
-      "coef_per_sd": -1.1717247135316473,
-      "odds_ratio_per_sd": 0.30983210855129584
-    },
-    {
-      "feature": "product_W",
-      "label": "Product code W",
-      "mean_abs_contribution": 0.5547985129178297,
-      "coef_per_sd": -0.6772932662183857,
-      "odds_ratio_per_sd": 0.5079901272100551
+      "mean_abs_contribution": 0.7918191215723764,
+      "coef_per_sd": -1.229204813894792,
+      "odds_ratio_per_sd": 0.2925250971131453
     },
     {
       "feature": "log_c9",
       "label": "IEEE count C9 (anonymized)",
-      "mean_abs_contribution": 0.5133217379353904,
-      "coef_per_sd": 0.8542910023697141,
-      "odds_ratio_per_sd": 2.3497078525631756
+      "mean_abs_contribution": 0.5632938559695908,
+      "coef_per_sd": 0.9391987347697472,
+      "odds_ratio_per_sd": 2.557931015796501
+    },
+    {
+      "feature": "product_W",
+      "label": "Product code W",
+      "mean_abs_contribution": 0.4569519575370095,
+      "coef_per_sd": -0.5571615247372856,
+      "odds_ratio_per_sd": 0.5728327299242345
     },
     {
       "feature": "credit_card",
       "label": "Credit card (vs. debit/other)",
-      "mean_abs_contribution": 0.2706433284655774,
-      "coef_per_sd": 0.32275532445684696,
-      "odds_ratio_per_sd": 1.3809274303977863
-    },
-    {
-      "feature": "product_R",
-      "label": "Product code R",
-      "mean_abs_contribution": 0.2625536070879124,
-      "coef_per_sd": -0.6243078340143754,
-      "odds_ratio_per_sd": 0.5356320465230192
+      "mean_abs_contribution": 0.2803819164536826,
+      "coef_per_sd": 0.33242847959034516,
+      "odds_ratio_per_sd": 1.3943501711232247
     },
     {
       "feature": "log_amount",
       "label": "Transaction amount",
-      "mean_abs_contribution": 0.22160328147726333,
-      "coef_per_sd": 0.2828480495436624,
-      "odds_ratio_per_sd": 1.3269035229021615
-    },
-    {
-      "feature": "log_c2",
-      "label": "IEEE count C2 (anonymized)",
-      "mean_abs_contribution": 0.1967974801169846,
-      "coef_per_sd": 0.32337276281166655,
-      "odds_ratio_per_sd": 1.3817803312382864
-    },
-    {
-      "feature": "log_c7",
-      "label": "IEEE count C7 (anonymized)",
-      "mean_abs_contribution": 0.18608916630363806,
-      "coef_per_sd": -0.47805653909366563,
-      "odds_ratio_per_sd": 0.6199871424799083
-    },
-    {
-      "feature": "d15_missing",
-      "label": "D15 not recorded",
-      "mean_abs_contribution": 0.16283467632235435,
-      "coef_per_sd": 0.24809624284454504,
-      "odds_ratio_per_sd": 1.2815832694781364
+      "mean_abs_contribution": 0.2476718567753942,
+      "coef_per_sd": 0.31380061698974215,
+      "odds_ratio_per_sd": 1.3686168303983206
     },
     {
       "feature": "log_c12",
       "label": "IEEE count C12 (anonymized)",
-      "mean_abs_contribution": 0.16230746013671615,
-      "coef_per_sd": 0.32666077090439705,
-      "odds_ratio_per_sd": 1.3863311135544418
+      "mean_abs_contribution": 0.22164273338059637,
+      "coef_per_sd": 0.4448873277884386,
+      "odds_ratio_per_sd": 1.5603143818560432
     },
     {
-      "feature": "product_H",
-      "label": "Product code H",
-      "mean_abs_contribution": 0.15439629091034127,
-      "coef_per_sd": -0.4226824322878777,
-      "odds_ratio_per_sd": 0.6552866979701757
+      "feature": "log_c2",
+      "label": "IEEE count C2 (anonymized)",
+      "mean_abs_contribution": 0.21518133731075703,
+      "coef_per_sd": 0.35762240380406446,
+      "odds_ratio_per_sd": 1.4299255840674523
     },
     {
-      "feature": "log_prior_txn_count",
-      "label": "Customer's prior transaction count",
-      "mean_abs_contribution": 0.145191551793926,
-      "coef_per_sd": 0.1523991302114622,
-      "odds_ratio_per_sd": 1.1646249806940234
+      "feature": "log_c7",
+      "label": "IEEE count C7 (anonymized)",
+      "mean_abs_contribution": 0.21411629243635852,
+      "coef_per_sd": -0.5528684387850775,
+      "odds_ratio_per_sd": 0.5752972364540277
     },
     {
-      "feature": "log_d1",
-      "label": "IEEE time delta D1 (anonymized)",
-      "mean_abs_contribution": 0.13123279349691555,
-      "coef_per_sd": -0.13792356631862562,
-      "odds_ratio_per_sd": 0.8711652755702399
+      "feature": "product_R",
+      "label": "Product code R",
+      "mean_abs_contribution": 0.2081227154136813,
+      "coef_per_sd": -0.4886479528700067,
+      "odds_ratio_per_sd": 0.6134552541450315
     },
     {
-      "feature": "log_hours_since_prev",
-      "label": "Hours since previous transaction",
-      "mean_abs_contribution": 0.1279239020844622,
-      "coef_per_sd": -0.13370383265544056,
-      "odds_ratio_per_sd": 0.8748491279815084
+      "feature": "d11_missing",
+      "label": "D11 not recorded",
+      "mean_abs_contribution": 0.17355352126918316,
+      "coef_per_sd": 0.1691761927081796,
+      "odds_ratio_per_sd": 1.184328790638972
+    },
+    {
+      "feature": "email_gmail",
+      "label": "Purchaser email gmail.com",
+      "mean_abs_contribution": 0.16326521756316967,
+      "coef_per_sd": 0.1675555788909175,
+      "odds_ratio_per_sd": 1.1824110054510057
+    },
+    {
+      "feature": "email_missing",
+      "label": "Purchaser email not recorded",
+      "mean_abs_contribution": 0.15734045816024517,
+      "coef_per_sd": 0.20740811563023653,
+      "odds_ratio_per_sd": 1.2304846493390957
     },
     {
       "feature": "log_c6",
       "label": "IEEE count C6 (anonymized)",
-      "mean_abs_contribution": 0.12055484306665887,
-      "coef_per_sd": 0.20201907239175423,
-      "odds_ratio_per_sd": 1.223871350042609
+      "mean_abs_contribution": 0.13330209170916513,
+      "coef_per_sd": 0.22572292041998043,
+      "odds_ratio_per_sd": 1.2532283731753258
     },
     {
-      "feature": "log_d15",
-      "label": "IEEE time delta D15 (anonymized)",
-      "mean_abs_contribution": 0.09414380654234945,
-      "coef_per_sd": -0.10282736855467468,
-      "odds_ratio_per_sd": 0.9022827224080099
+      "feature": "log_hours_since_prev",
+      "label": "Hours since previous transaction",
+      "mean_abs_contribution": 0.12610059034887655,
+      "coef_per_sd": -0.13246464518753015,
+      "odds_ratio_per_sd": 0.8759339020376098
     },
     {
-      "feature": "log_c8",
-      "label": "IEEE count C8 (anonymized)",
-      "mean_abs_contribution": 0.09060941353391941,
-      "coef_per_sd": 0.1599879356082057,
-      "odds_ratio_per_sd": 1.1734967133822893
+      "feature": "log_prior_txn_count",
+      "label": "Customer's prior transaction count",
+      "mean_abs_contribution": 0.12317243809045207,
+      "coef_per_sd": 0.1311289327886261,
+      "odds_ratio_per_sd": 1.1401147700126066
+    },
+    {
+      "feature": "log_d1",
+      "label": "IEEE time delta D1 (anonymized)",
+      "mean_abs_contribution": 0.11894698100527083,
+      "coef_per_sd": -0.1255921883867511,
+      "odds_ratio_per_sd": 0.8819744528771337
     },
     {
       "feature": "log_c10",
       "label": "IEEE count C10 (anonymized)",
-      "mean_abs_contribution": 0.07920599795368485,
-      "coef_per_sd": -0.14458409221390603,
-      "odds_ratio_per_sd": 0.8653821374434336
+      "mean_abs_contribution": 0.1167004249393713,
+      "coef_per_sd": -0.21267614146401218,
+      "odds_ratio_per_sd": 0.8084179078659786
     },
     {
-      "feature": "product_C",
-      "label": "Product code C",
-      "mean_abs_contribution": 0.07041738520341523,
-      "coef_per_sd": -0.1147065573239735,
-      "odds_ratio_per_sd": 0.8916277471543201
+      "feature": "d15_missing",
+      "label": "D15 not recorded",
+      "mean_abs_contribution": 0.11566793003722188,
+      "coef_per_sd": 0.1782073668882399,
+      "odds_ratio_per_sd": 1.1950731141347888
     },
     {
-      "feature": "cold_start",
-      "label": "New customer (no history)",
-      "mean_abs_contribution": 0.05157065652143532,
-      "coef_per_sd": -0.08585578050869141,
-      "odds_ratio_per_sd": 0.9177265757365053
+      "feature": "product_H",
+      "label": "Product code H",
+      "mean_abs_contribution": 0.11352964792442173,
+      "coef_per_sd": -0.31270248207230805,
+      "odds_ratio_per_sd": 0.7314675048946983
     },
     {
-      "feature": "log_c3",
-      "label": "IEEE count C3 (anonymized)",
-      "mean_abs_contribution": 0.043991225089871924,
-      "coef_per_sd": -0.3729603626563804,
-      "odds_ratio_per_sd": 0.6886925302454235
+      "feature": "log_c8",
+      "label": "IEEE count C8 (anonymized)",
+      "mean_abs_contribution": 0.11110436022835714,
+      "coef_per_sd": 0.19574833797044824,
+      "odds_ratio_per_sd": 1.216220790224706
     },
     {
-      "feature": "amount_zscore",
-      "label": "Amount vs. customer's usual (z-score)",
-      "mean_abs_contribution": 0.04192249530080448,
-      "coef_per_sd": -0.08229872343917002,
-      "odds_ratio_per_sd": 0.9209967942695142
+      "feature": "d14_missing",
+      "label": "D14 not recorded",
+      "mean_abs_contribution": 0.10153953713305623,
+      "coef_per_sd": -0.16926961431425133,
+      "odds_ratio_per_sd": 0.8442812423888797
     },
     {
-      "feature": "log_c11",
-      "label": "IEEE count C11 (anonymized)",
-      "mean_abs_contribution": 0.03777252935183987,
-      "coef_per_sd": 0.06774202385741981,
-      "odds_ratio_per_sd": 1.070089215379589
+      "feature": "email_yahoo",
+      "label": "Purchaser email yahoo.com",
+      "mean_abs_contribution": 0.08078257023752634,
+      "coef_per_sd": 0.10724732872588826,
+      "odds_ratio_per_sd": 1.1132095491332181
+    },
+    {
+      "feature": "log_d15",
+      "label": "IEEE time delta D15 (anonymized)",
+      "mean_abs_contribution": 0.07051935431267324,
+      "coef_per_sd": -0.07695609823883948,
+      "odds_ratio_per_sd": 0.9259305026939861
     },
     {
       "feature": "log_c13",
       "label": "IEEE count C13 (anonymized)",
-      "mean_abs_contribution": 0.0369432994876596,
-      "coef_per_sd": -0.04690667441056542,
-      "odds_ratio_per_sd": 0.9541764425141437
+      "mean_abs_contribution": 0.06645250525384422,
+      "coef_per_sd": -0.08432291223465387,
+      "odds_ratio_per_sd": 0.9191344084240602
     },
     {
-      "feature": "log_customer_avg_30d",
-      "label": "Customer avg amount (30 days)",
-      "mean_abs_contribution": 0.02513062440055414,
-      "coef_per_sd": -0.0359800978337602,
-      "odds_ratio_per_sd": 0.9646594921056519
+      "feature": "product_C",
+      "label": "Product code C",
+      "mean_abs_contribution": 0.06461837209414137,
+      "coef_per_sd": -0.10576929102821477,
+      "odds_ratio_per_sd": 0.8996321773501922
+    },
+    {
+      "feature": "d13_missing",
+      "label": "D13 not recorded",
+      "mean_abs_contribution": 0.05627745378544554,
+      "coef_per_sd": 0.09215918934994263,
+      "odds_ratio_per_sd": 1.096539365576508
+    },
+    {
+      "feature": "log_d10",
+      "label": "IEEE time delta D10 (anonymized)",
+      "mean_abs_contribution": 0.05197507403562129,
+      "coef_per_sd": -0.054678684249769995,
+      "odds_ratio_per_sd": 0.9467893174034806
+    },
+    {
+      "feature": "log_c11",
+      "label": "IEEE count C11 (anonymized)",
+      "mean_abs_contribution": 0.047941676749178194,
+      "coef_per_sd": 0.08711233307336091,
+      "odds_ratio_per_sd": 1.091019230378147
+    },
+    {
+      "feature": "amount_zscore",
+      "label": "Amount vs. customer's usual (z-score)",
+      "mean_abs_contribution": 0.047740071490260265,
+      "coef_per_sd": -0.0937413193377568,
+      "odds_ratio_per_sd": 0.9105182652472555
+    },
+    {
+      "feature": "log_c3",
+      "label": "IEEE count C3 (anonymized)",
+      "mean_abs_contribution": 0.04649709228053345,
+      "coef_per_sd": -0.38289895755368347,
+      "odds_ratio_per_sd": 0.6818817948098921
+    },
+    {
+      "feature": "email_hotmail",
+      "label": "Purchaser email hotmail.com",
+      "mean_abs_contribution": 0.04164661756293644,
+      "coef_per_sd": -0.08184905906504114,
+      "odds_ratio_per_sd": 0.9214110268424196
+    },
+    {
+      "feature": "email_anonymous",
+      "label": "Purchaser email anonymous.com",
+      "mean_abs_contribution": 0.03861236741316346,
+      "coef_per_sd": -0.08188570162459274,
+      "odds_ratio_per_sd": 0.9213772646025683
+    },
+    {
+      "feature": "cold_start",
+      "label": "New customer (no history)",
+      "mean_abs_contribution": 0.03667869353267054,
+      "coef_per_sd": -0.06176060418408065,
+      "odds_ratio_per_sd": 0.940107917756302
     },
     {
       "feature": "log_c4",
       "label": "IEEE count C4 (anonymized)",
-      "mean_abs_contribution": 0.01326308027929982,
-      "coef_per_sd": 0.02428447484895014,
-      "odds_ratio_per_sd": 1.0245817441738432
+      "mean_abs_contribution": 0.03510677382827511,
+      "coef_per_sd": 0.06410944357281687,
+      "odds_ratio_per_sd": 1.0662090821075834
+    },
+    {
+      "feature": "card_mastercard",
+      "label": "Card network: Mastercard",
+      "mean_abs_contribution": 0.031385162096605954,
+      "coef_per_sd": -0.03349614581078036,
+      "odds_ratio_per_sd": 0.9670586384511993
+    },
+    {
+      "feature": "log_d11",
+      "label": "IEEE time delta D11 (anonymized)",
+      "mean_abs_contribution": 0.026739238822539892,
+      "coef_per_sd": 0.027841459696351115,
+      "odds_ratio_per_sd": 1.0282326551810397
+    },
+    {
+      "feature": "log_customer_avg_30d",
+      "label": "Customer avg amount (30 days)",
+      "mean_abs_contribution": 0.02659722697576064,
+      "coef_per_sd": -0.037790537818805196,
+      "odds_ratio_per_sd": 0.9629146139643666
+    },
+    {
+      "feature": "d12_missing",
+      "label": "D12 not recorded",
+      "mean_abs_contribution": 0.024290203682123836,
+      "coef_per_sd": -0.040570590814716076,
+      "odds_ratio_per_sd": 0.9602413778976951
+    },
+    {
+      "feature": "log_d13",
+      "label": "IEEE time delta D13 (anonymized)",
+      "mean_abs_contribution": 0.018929074872815605,
+      "coef_per_sd": -0.059454044146347876,
+      "odds_ratio_per_sd": 0.9422788358245056
+    },
+    {
+      "feature": "log_d12",
+      "label": "IEEE time delta D12 (anonymized)",
+      "mean_abs_contribution": 0.018922262943368684,
+      "coef_per_sd": -0.05472471188659236,
+      "odds_ratio_per_sd": 0.9467457399315237
+    },
+    {
+      "feature": "d10_missing",
+      "label": "D10 not recorded",
+      "mean_abs_contribution": 0.016627475582236192,
+      "coef_per_sd": -0.028620735643984728,
+      "odds_ratio_per_sd": 0.9717849579802339
+    },
+    {
+      "feature": "log_d14",
+      "label": "IEEE time delta D14 (anonymized)",
+      "mean_abs_contribution": 0.015326659947677785,
+      "coef_per_sd": 0.04331267073712163,
+      "odds_ratio_per_sd": 1.0442643547162684
+    },
+    {
+      "feature": "card_american_express",
+      "label": "Card network: American Express",
+      "mean_abs_contribution": 0.012343748216635437,
+      "coef_per_sd": -0.0618281593070668,
+      "odds_ratio_per_sd": 0.9400444107954321
+    },
+    {
+      "feature": "email_outlook",
+      "label": "Purchaser email outlook.com",
+      "mean_abs_contribution": 0.010923187781267626,
+      "coef_per_sd": 0.058160930883196515,
+      "odds_ratio_per_sd": 1.0598855503038664
+    },
+    {
+      "feature": "card_discover",
+      "label": "Card network: Discover",
+      "mean_abs_contribution": 0.007875388548484163,
+      "coef_per_sd": 0.03781529999242103,
+      "odds_ratio_per_sd": 1.0385393969285086
     },
     {
       "feature": "log_txn_count_24h",
       "label": "Transactions in prior 24h",
-      "mean_abs_contribution": 0.0056348098353197216,
-      "coef_per_sd": -0.00702075924858237,
-      "odds_ratio_per_sd": 0.9930038287059446
+      "mean_abs_contribution": 0.0007993141796186341,
+      "coef_per_sd": -0.0009917927404237087,
+      "odds_ratio_per_sd": 0.9990086989234399
     }
   ],
-  "base_log_odds": -4.162561672818851,
-  "bootstrap_refits": 30
+  "base_log_odds": -4.215372972754126,
+  "bootstrap_refits": 30,
+  "error_analysis": {
+    "top5pct_threshold": 0.14092793526619218,
+    "overall_fraud_caught_in_top5pct": 0.4284313725490196,
+    "segments": [
+      {
+        "segment": "product",
+        "level": "C",
+        "transactions": 15251,
+        "fraud_rate": 0.13015539964592485,
+        "avg_predicted": 0.11908090826891914,
+        "pr_auc": 0.6922531328090349,
+        "fraud_caught_in_top5pct": 0.7506297229219143,
+        "fraud_dollars_caught_in_top5pct": 0.8061961454084693
+      },
+      {
+        "segment": "product",
+        "level": "H",
+        "transactions": 4148,
+        "fraud_rate": 0.06027000964320154,
+        "avg_predicted": 0.05712795041325767,
+        "pr_auc": 0.37431667027045445,
+        "fraud_caught_in_top5pct": 0.512,
+        "fraud_dollars_caught_in_top5pct": 0.5482960332935596
+      },
+      {
+        "segment": "product",
+        "level": "R",
+        "transactions": 6634,
+        "fraud_rate": 0.046578233343382576,
+        "avg_predicted": 0.045641204342485406,
+        "pr_auc": 0.5590464738293163,
+        "fraud_caught_in_top5pct": 0.6440129449838188,
+        "fraud_dollars_caught_in_top5pct": 0.7085132634176434
+      },
+      {
+        "segment": "product",
+        "level": "S",
+        "transactions": 4018,
+        "fraud_rate": 0.0547536087605774,
+        "avg_predicted": 0.0907930778231704,
+        "pr_auc": 0.39135896216906635,
+        "fraud_caught_in_top5pct": 0.509090909090909,
+        "fraud_dollars_caught_in_top5pct": 0.6167953667953668
+      },
+      {
+        "segment": "product",
+        "level": "W",
+        "transactions": 117584,
+        "fraud_rate": 0.019866648523608654,
+        "avg_predicted": 0.022978706220649084,
+        "pr_auc": 0.07207835116382755,
+        "fraud_caught_in_top5pct": 0.1095890410958904,
+        "fraud_dollars_caught_in_top5pct": 0.19079792422169997
+      },
+      {
+        "segment": "card_type",
+        "level": "credit",
+        "transactions": 33820,
+        "fraud_rate": 0.06667652276759314,
+        "avg_predicted": 0.0763190456453941,
+        "pr_auc": 0.48371993149723386,
+        "fraud_caught_in_top5pct": 0.5835920177383592,
+        "fraud_dollars_caught_in_top5pct": 0.4192803208256721
+      },
+      {
+        "segment": "card_type",
+        "level": "debit",
+        "transactions": 113072,
+        "fraud_rate": 0.025028300551860762,
+        "avg_predicted": 0.024942941774248405,
+        "pr_auc": 0.30033890981673594,
+        "fraud_caught_in_top5pct": 0.30353356890459365,
+        "fraud_dollars_caught_in_top5pct": 0.2552308890765656
+      },
+      {
+        "segment": "card_type",
+        "level": "missing",
+        "transactions": 743,
+        "fraud_rate": 0.020188425302826378,
+        "avg_predicted": 0.02843844259593903,
+        "pr_auc": 0.518330976303103,
+        "fraud_caught_in_top5pct": 0.6666666666666666,
+        "fraud_dollars_caught_in_top5pct": 0.4908092998346126
+      },
+      {
+        "segment": "amount_band",
+        "level": "under $50",
+        "transactions": 47703,
+        "fraud_rate": 0.040102299645724586,
+        "avg_predicted": 0.03951823430665871,
+        "pr_auc": 0.5341456748190392,
+        "fraud_caught_in_top5pct": 0.5389440669106116,
+        "fraud_dollars_caught_in_top5pct": 0.5043801421881144
+      },
+      {
+        "segment": "amount_band",
+        "level": "$50-200",
+        "transactions": 75372,
+        "fraud_rate": 0.028246563710661785,
+        "avg_predicted": 0.03251025560579833,
+        "pr_auc": 0.3122554574250903,
+        "fraud_caught_in_top5pct": 0.3790511977454204,
+        "fraud_dollars_caught_in_top5pct": 0.3762692707678017
+      },
+      {
+        "segment": "amount_band",
+        "level": "$200-1,000",
+        "transactions": 22385,
+        "fraud_rate": 0.04458342640160822,
+        "avg_predicted": 0.0425484947164191,
+        "pr_auc": 0.2583353259160291,
+        "fraud_caught_in_top5pct": 0.3276553106212425,
+        "fraud_dollars_caught_in_top5pct": 0.30560434281314103
+      },
+      {
+        "segment": "amount_band",
+        "level": "over $1,000",
+        "transactions": 2175,
+        "fraud_rate": 0.027586206896551724,
+        "avg_predicted": 0.06190290942345447,
+        "pr_auc": 0.19707752510617466,
+        "fraud_caught_in_top5pct": 0.3333333333333333,
+        "fraud_dollars_caught_in_top5pct": 0.3410190360930208
+      },
+      {
+        "segment": "history",
+        "level": "new customer",
+        "transactions": 11398,
+        "fraud_rate": 0.03105808036497631,
+        "avg_predicted": 0.030352488914047935,
+        "pr_auc": 0.45784004632954217,
+        "fraud_caught_in_top5pct": 0.4774011299435028,
+        "fraud_dollars_caught_in_top5pct": 0.40779621122830567
+      },
+      {
+        "segment": "history",
+        "level": "1-4 prior",
+        "transactions": 22104,
+        "fraud_rate": 0.030808903365906623,
+        "avg_predicted": 0.029723685579849002,
+        "pr_auc": 0.3038223761293836,
+        "fraud_caught_in_top5pct": 0.3333333333333333,
+        "fraud_dollars_caught_in_top5pct": 0.2807095052500362
+      },
+      {
+        "segment": "history",
+        "level": "5-19 prior",
+        "transactions": 34162,
+        "fraud_rate": 0.02707686903577074,
+        "avg_predicted": 0.02780067614060837,
+        "pr_auc": 0.25179682499378125,
+        "fraud_caught_in_top5pct": 0.28216216216216217,
+        "fraud_dollars_caught_in_top5pct": 0.26456357263231856
+      },
+      {
+        "segment": "history",
+        "level": "20+ prior",
+        "transactions": 79971,
+        "fraud_rate": 0.03926423328456566,
+        "avg_predicted": 0.043389372220668285,
+        "pr_auc": 0.4293771060701389,
+        "fraud_caught_in_top5pct": 0.48662420382165605,
+        "fraud_dollars_caught_in_top5pct": 0.3983117097636805
+      }
+    ],
+    "weak_segments": [
+      "product=W"
+    ],
+    "largest_calibration_gaps": [
+      {
+        "segment": "product",
+        "level": "S",
+        "avg_predicted": 0.0907930778231704,
+        "fraud_rate": 0.0547536087605774
+      },
+      {
+        "segment": "amount_band",
+        "level": "over $1,000",
+        "avg_predicted": 0.06190290942345447,
+        "fraud_rate": 0.027586206896551724
+      },
+      {
+        "segment": "product",
+        "level": "C",
+        "avg_predicted": 0.11908090826891914,
+        "fraud_rate": 0.13015539964592485
+      }
+    ],
+    "worst_days_capture_at_50": {
+      "182": 0.03634374642241246,
+      "151": 0.13809443284161455,
+      "146": 0.13826237955668125,
+      "168": 0.15066581729481687,
+      "166": 0.1662743269292363
+    },
+    "days_with_zero_capture_at_50": 0,
+    "test_days": 53
+  }
 }

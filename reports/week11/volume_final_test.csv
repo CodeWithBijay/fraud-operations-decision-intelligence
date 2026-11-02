@@ -1,0 +1,6 @@
+model,mae,mape,coverage_90
+"Week 10 model (yesterday, 7-day average, weekday, trend) — SELECTED",41.507545449898046,0.2664321092350483,0.8409090909090909
+Candidate: + alerts two days ago and same weekday last week,44.367601000910554,0.3027802812314481,0.8636363636363636
+Baseline: same as yesterday,56.77272727272727,0.4248967282508181,
+Baseline: previous 7-day average,60.65584415584415,0.5698639800628927,
+Baseline: same weekday last week,59.06818181818182,0.715636082464032,
