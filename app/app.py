@@ -1128,7 +1128,7 @@ elif page == "Alert investigation":
             if res and res["txn"] == choice:
                 if res.get("errors"):
                     st.error("**Scenario not run — the inputs are inconsistent:**\n\n"
-                             + "\n".join(f"- {e}" for e in res["errors"]))
+                             + "\n".join(f"- {e}" for e in res["errors"]).replace("$", "\\$"))
                 else:
                     k1, k2, k3 = st.columns(3)
                     k1.metric("Baseline (as recorded)", pct(res["base"]))
@@ -1138,7 +1138,7 @@ elif page == "Alert investigation":
                               + res["table"][-2]["Scenario"].split(" of ")[0],
                               help="Rank 1 is reviewed first; a larger number means lower priority.")
                     if res["warnings"]:
-                        st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]))
+                        st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]).replace("$", "\\$"))
                     st.markdown("#### Baseline vs. scenario")
                     st.dataframe(pd.DataFrame(res["table"]), hide_index=True, width="stretch",
                          height=35 * (len(res["table"]) + 1) + 3)
@@ -1526,7 +1526,7 @@ else:
     if res and res["day"] == fday:
         if res.get("errors"):
             st.error("**Scenario not run — the inputs are inconsistent:**\n\n"
-                     + "\n".join(f"- {e}" for e in res["errors"]))
+                     + "\n".join(f"- {e}" for e in res["errors"]).replace("$", "\\$"))
         else:
             k1, k2, k3 = st.columns(3)
             k1.metric("Baseline forecast", f"{res['base']['mu']:.0f} alerts")
@@ -1535,7 +1535,7 @@ else:
             k3.metric("Scenario chance of overflow", pct(res["new"]["p_over"]),
                       delta=f"{(res['new']['p_over'] - res['base']['p_over']) * 100:+.1f} pts", delta_color="inverse")
             if res["warnings"]:
-                st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]))
+                st.warning("**Plausibility warnings:**\n\n" + "\n".join(f"- {w}" for w in res["warnings"]).replace("$", "\\$"))
             st.markdown("#### Baseline vs. scenario")
             st.dataframe(pd.DataFrame(res["table"]), hide_index=True, width="stretch",
                          height=35 * (len(res["table"]) + 1) + 3)

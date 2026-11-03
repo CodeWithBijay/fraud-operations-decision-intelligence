@@ -258,3 +258,23 @@ Week 11 will evaluate decision support more fully: comparing queue policies acro
 | [`docs/17_week10_progress_report.md`](docs/17_week10_progress_report.md) | Progress report |
 | [`docs/18_contributions.md`](docs/18_contributions.md) | Contributions and use of generative AI |
 | [`docs/DATA_ACCESS.md`](docs/DATA_ACCESS.md) | Data sharing and restrictions |
+
+---
+
+## Week 11 update: model evaluation and decision support
+
+**Report:** [`docs/20_week11_evaluation_report.md`](docs/20_week11_evaluation_report.md) ·
+**Contributions:** [`docs/18_contributions.md`](docs/18_contributions.md)
+
+```bash
+pip install -r requirements.txt
+python3 src/modeling/week11_split_and_leakage.py           # time split + leakage checks
+python3 src/modeling/evaluate_week11.py --validation-only   # model selection (no test data)
+python3 src/modeling/evaluate_week11.py                     # final test once, error analysis, saves models
+python3 scripts/smoke_test_app.py                           # opens every app page headlessly
+streamlit run app/app.py
+```
+
+**Headline (final test):** at 50 reviews/day, ranking by expected exposure catches 32.7% of fraud dollars vs. 19.7%
+for largest-amount-first and 15.5% for the Week 9 rules. The volume forecast errs by 41.5 alerts/day vs. 56.8 for the
+best simple baseline. Week 10 app preserved in `app/week10/app.py` and tag `week10-submission`.
