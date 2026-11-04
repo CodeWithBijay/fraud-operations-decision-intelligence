@@ -1,0 +1,10 @@
+# Python dependencies for FraudOps Decision Intelligence
+pandas>=2.2
+numpy>=1.26
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+streamlit>=1.45
+altair>=5.3
+scikit-learn>=1.5
+scipy>=1.13
+joblib>=1.4
