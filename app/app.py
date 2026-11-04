@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from scipy.stats import nbinom, poisson
-from sqlalchemy import create_engine, text
+from sqlalchemy import URL, create_engine, text
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src", "modeling"))
@@ -192,12 +192,19 @@ NOT_CAUSAL = ("These are associations the model learned from historical data. Th
 @st.cache_resource
 def get_engine():
     """Connect to PostgreSQL and make sure the decision-log table exists."""
-    user = os.environ.get("PGUSER", "fraud_app")
-    pwd = os.environ.get("PGPASSWORD", "")
-    host = os.environ.get("PGHOST", "localhost")
-    db = os.environ.get("PGDATABASE", "fraud_risk_db")
-    auth = f"{user}:{pwd}@" if pwd else f"{user}@"
-    engine = create_engine(f"postgresql+psycopg2://{auth}{host}/{db}")
+    def setting(key, default=""):
+        try:
+            if key in st.secrets:  # Streamlit Cloud: values from the app's Secrets
+                return str(st.secrets[key])
+        except Exception:  # no secrets file when running locally
+            pass
+        return os.environ.get(key, default)
+
+    url = URL.create("postgresql+psycopg2", username=setting("PGUSER", "fraud_app"),
+                     password=setting("PGPASSWORD") or None, host=setting("PGHOST", "localhost"),
+                     database=setting("PGDATABASE", "fraud_risk_db"))
+    engine = create_engine(url, pool_pre_ping=True,
+                           connect_args={"sslmode": setting("PGSSLMODE", "prefer")})
     with open(os.path.join(ROOT, "sql", "ops", "create_decision_log.sql")) as f:
         ddl = f.read()
     with engine.begin() as conn:
