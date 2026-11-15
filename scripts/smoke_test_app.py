@@ -14,7 +14,7 @@ print("Wrong password blocked  ", "OK" if any("Wrong username or password" in e.
 analyst = AppTest.from_file("../app/app.py", default_timeout=180)
 analyst.session_state["auth_user"], analyst.session_state["auth_role"] = "test-analyst", "analyst"
 analyst.run()
-print("Analyst pages limited   ", "OK" if len(analyst.radio(key="page").options) == 2 and
+print("Analyst pages limited   ", "OK" if len(analyst.radio(key="page").options) == 3 and
       [s.disabled for s in analyst.slider if s.label.startswith("Review capacity")] == [True] else "NOT LIMITED")
 
 at = AppTest.from_file("../app/app.py", default_timeout=180)
@@ -40,4 +40,10 @@ cnt.set_value(prior.value + 5)
 at.button[[b.label for b in at.button].index("Run scenario")].click().run()
 print("Invalid input check     ", "OK - blocked" if any("inconsistent" in e.value for e in at.error)
       else "not blocked")
+at.radio(key="page").set_value("Ask FraudOps").run()
+at.chat_input[0].set_value("What does PR-AUC mean?").run()
+bot = [m for m in at.chat_message if m.name == "assistant"]
+print("Assistant chatbot       ", "OK - answer + sources" if bot and any("Sources" in e.label for e in at.expander)
+      and not at.exception else "no answer", "| errors:", len(at.exception))
+problems += [e.value for e in at.exception]
 print("RESULT:", "ALL PAGES OK" if not problems else f"{len(problems)} problem(s)")

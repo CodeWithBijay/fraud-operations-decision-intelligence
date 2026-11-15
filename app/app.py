@@ -306,6 +306,7 @@ PAGE_ICONS = {
     "Alert investigation": ":material/manage_search:",
     "Fraud risk model": ":material/psychology:",
     "Alert volume forecast": ":material/insights:",
+    "Ask FraudOps": ":material/forum:",
 }
 SHIELD_SVG = ('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" '
               'stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6z"/>'
@@ -421,9 +422,9 @@ def page_header(eyebrow, title, subtitle, chips=(), art=None):
 # ============================================================
 # 1. SETTINGS
 # ============================================================
-PAGES = ["Alert queue", "Alert investigation", "Fraud risk model", "Alert volume forecast"]
+PAGES = ["Alert queue", "Alert investigation", "Fraud risk model", "Alert volume forecast", "Ask FraudOps"]
 NAV_LABELS = {"Alert queue": "Queue", "Alert investigation": "Investigate",
-              "Fraud risk model": "Fraud model", "Alert volume forecast": "Volume"}
+              "Fraud risk model": "Fraud model", "Alert volume forecast": "Volume", "Ask FraudOps": "Assistant"}
 BASE_POLICIES = {
     "P2 · Rule risk score": "P2",
     "P1 · Largest amount": "P1",
@@ -950,7 +951,7 @@ policies = {**(MODEL_POLICIES if fm else {}), **BASE_POLICIES}
 # 6b. SIGN-IN AND ROLES
 # ============================================================
 ROLE_NAMES = {"lead": "Fraud Ops Lead", "analyst": "Fraud Analyst"}
-ROLE_PAGES = {"lead": PAGES, "analyst": ["Alert queue", "Alert investigation"]}
+ROLE_PAGES = {"lead": PAGES, "analyst": ["Alert queue", "Alert investigation", "Ask FraudOps"]}
 
 
 def app_users():
@@ -1010,6 +1011,13 @@ ROLE = st.session_state["auth_role"]
 ALLOWED_PAGES = ROLE_PAGES[ROLE]
 if st.session_state.get("page") not in ALLOWED_PAGES:
     st.session_state["page"] = ALLOWED_PAGES[0]
+_help_slot = len(ALLOWED_PAGES)  # the last menu item gets a "Help" heading
+st.markdown(f"""<style>
+.st-key-topnav div[role="radiogroup"] > :nth-child({_help_slot})::before {{ content: "Help"; display: block;
+    padding: 12px 12px 6px; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(165,180,252,.70); }}
+@media (max-width: 900px) {{ .st-key-topnav div[role="radiogroup"] > :nth-child({_help_slot})::before {{ display: none; }} }}
+</style>""", unsafe_allow_html=True)
 
 
 def tested_capture(k, prefix="P4"):
@@ -1746,6 +1754,137 @@ elif page == "Fraud risk model":
             st.dataframe(pd.DataFrame(fe["final_test"]).style.format(
                 {"pr_auc": "{:.3f}", "roc_auc": "{:.3f}", "brier": "{:.4f}", "captured_at_50": "{:.1%}"},
                 na_rep="—"), hide_index=True, width="stretch")
+
+# ============================================================
+# 10c. PAGE — FRAUDOPS ASSISTANT (chatbot: Gemini answers from the project documents)
+# ============================================================
+elif page == "Ask FraudOps":
+    import glob
+    import re
+    import urllib.request
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import linear_kernel
+
+    @st.cache_resource(show_spinner=False)
+    def rag_index():
+        """Split docs/*.md and README.md into heading-sized passages and build a TF-IDF index."""
+        paths = sorted(glob.glob(os.path.join(ROOT, "docs", "*.md"))) + [os.path.join(ROOT, "README.md")]
+        chunks = []
+        for path in paths:
+            if not os.path.exists(path):
+                continue
+            heading, buf = os.path.basename(path), []
+            for line in open(path, encoding="utf-8").read().splitlines() + ["# end"]:
+                if re.match(r"^#{1,4} ", line):
+                    body = "\n".join(buf).strip()
+                    for i in range(0, len(body), 1200):
+                        if len(body[i:i + 1400]) > 40:
+                            chunks.append({"source": os.path.relpath(path, ROOT), "section": heading,
+                                           "text": body[i:i + 1400]})
+                    heading, buf = line.lstrip("#").strip(), []
+                else:
+                    buf.append(line)
+        vec = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), sublinear_tf=True,
+                              token_pattern=r"(?u)\b[\w-]+\b")
+        mat = vec.fit_transform([(c["section"] + " ") * 3 + c["text"] for c in chunks])  # headings count more
+        return chunks, vec, mat
+
+    def rag_search(question, k=4):
+        chunks, vec, mat = rag_index()
+        sims = linear_kernel(vec.transform([question]), mat).ravel()
+        return [(chunks[i], float(sims[i])) for i in sims.argsort()[::-1][:k] if sims[i] > 0.05]
+
+    def rag_secret(key):
+        try:
+            if key in st.secrets:
+                return str(st.secrets[key])
+        except Exception:
+            pass
+        return os.environ.get(key, "")
+
+    def gemini_answer(chat, hits, api_key):
+        """Send the retrieved passages, the last few chat turns and the question to Gemini; return its reply."""
+        context = "\n\n".join(f"[{i + 1}] ({h['source']} · {h['section']})\n{h['text']}"
+                              for i, (h, _) in enumerate(hits))
+        system = ("You are FraudOps Assistant, a help chatbot inside a fraud decision-support app used by a fraud "
+                  "operations lead and fraud analysts. Answer ONLY from the numbered passages and cite them like [1]. "
+                  "If the passages do not contain the answer, say you don't know and suggest what to ask instead. "
+                  "Use simple words and at most six sentences. Never claim causes or proof of fraud.")
+        earlier = [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]}
+                   for m in chat[-7:-1]]
+        while earlier and earlier[0]["role"] != "user":
+            earlier.pop(0)
+        contents = earlier + [{"role": "user", "parts": [{"text": f"Passages:\n{context}\n\n"
+                                                                  f"Question: {chat[-1]['content']}"}]}]
+        model = rag_secret("GEMINI_MODEL") or "gemini-3.5-flash-lite"
+        body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents,
+                "generationConfig": {"maxOutputTokens": 600, "temperature": 0.2}}
+        req = urllib.request.Request(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            data=json.dumps(body).encode(), headers={"x-goog-api-key": api_key, "content-type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            out = json.loads(resp.read())
+        parts = (out.get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+        return "".join(p.get("text", "") for p in parts).strip()
+
+    page_header("Help · AI chatbot", "FraudOps Assistant",
+                "Chat about the app, its numbers and its limits. Answers come only from this project's own "
+                "documents, with their sources.", [("Gemini + project documents", ""),
+                                                   ("No transaction data is sent", "neutral")])
+    st.markdown("""<style>
+[data-testid="stBottomBlockContainer"] { padding-left: calc(224px + 3.4rem) !important; }
+@media (max-width: 900px) { [data-testid="stBottomBlockContainer"] { padding-left: 1rem !important;
+                                                                      padding-bottom: 100px !important; } }
+</style>""", unsafe_allow_html=True)
+    api_key = rag_secret("GEMINI_API_KEY")
+    chat = st.session_state.setdefault("assistant_chat", [])
+    c_left, c_right = st.columns([5, 1], vertical_alignment="center")
+    c_left.caption("Answers by Gemini" if api_key else "Search-only mode: add GEMINI_API_KEY to the secrets for "
+                                                       "written answers.")
+    if c_right.button("Clear chat", width="stretch", disabled=not chat):
+        chat.clear()
+        st.rerun()
+    suggestion = None
+    if not chat:
+        with st.chat_message("assistant", avatar=":material/shield:"):
+            st.markdown("Hi! I'm the FraudOps Assistant. I can explain the alerts, the models, the KPIs and their "
+                        "limits, using this project's own documents. Try a question:")
+            suggestion = st.pills("Suggested questions", ["What does PR-AUC mean?", "Why do the queue and model "
+                                  "pages show different coverage?", "How accurate is the alert volume forecast?",
+                                  "Where is the fraud model weak?"], key="assistant_suggestion",
+                                  label_visibility="collapsed")
+    for m in chat:
+        with st.chat_message(m["role"], avatar=":material/shield:" if m["role"] == "assistant" else ":material/person:"):
+            st.markdown(m["content"].replace("$", "\\$"))
+            if m.get("sources"):
+                with st.expander(f"Sources ({len(m['sources'])})"):
+                    for i, src in enumerate(m["sources"], 1):
+                        st.markdown(f"**[{i}] {src['section']}** · `{src['source']}` · match {src['score']:.2f}")
+                        st.caption(src["text"][:600].replace("$", "\\$") + ("…" if len(src["text"]) > 600 else ""))
+    prompt = st.chat_input("Ask about alerts, models, KPIs or limits…") or suggestion
+    if prompt:
+        chat.append({"role": "user", "content": prompt})
+        hits = rag_search(prompt)
+        if not hits:
+            reply = ("I couldn't find that in the project documents. Try asking about the alerts, the models, the "
+                     "KPIs or the limitations.")
+        elif api_key:
+            try:
+                with st.spinner("Thinking…"):
+                    reply = gemini_answer(chat, hits, api_key) or "Gemini returned no answer. See the sources below."
+            except Exception as exc:
+                reply = (f"The AI service is unavailable right now ({type(exc).__name__}), so here are the closest "
+                         "passages from the project documents.")
+        else:
+            reply = "Here are the closest passages from the project documents. Open **Sources** to read them."
+        chat.append({"role": "assistant", "content": reply,
+                     "sources": [{"source": h["source"], "section": h["section"], "text": h["text"], "score": sc}
+                                 for h, sc in hits]})
+        st.session_state.pop("assistant_suggestion", None)
+        st.rerun()
+    st.caption("How it works: your question is matched against the project's documents (TF-IDF search). With a key, "
+               "only the retrieved passages, the recent chat and your question are sent to Gemini; no transaction or "
+               "customer data is sent. The AI can still make mistakes, so every answer lists its sources.")
 
 # ============================================================
 # 11. PAGE — ALERT VOLUME FORECAST (KPI 2)
