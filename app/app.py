@@ -17,7 +17,10 @@ Models (folder models/, built by src/modeling/evaluate_week11.py)
 
 Run:  streamlit run app/app.py
 """
+import hashlib
+import hmac
 import html
+import time
 import json
 import os
 import sys
@@ -943,13 +946,87 @@ models = load_models()
 fm, vm = models["fraud"], models["volume"]
 policies = {**(MODEL_POLICIES if fm else {}), **BASE_POLICIES}
 
+# ============================================================
+# 6b. SIGN-IN AND ROLES
+# ============================================================
+ROLE_NAMES = {"lead": "Fraud Ops Lead", "analyst": "Fraud Analyst"}
+ROLE_PAGES = {"lead": PAGES, "analyst": ["Alert queue", "Alert investigation"]}
+
+
+def app_users():
+    """Accounts from Streamlit Secrets ([users.<name>] role, salt, hash). Only PBKDF2 hashes are stored."""
+    try:
+        return {name.lower(): dict(acc) for name, acc in st.secrets["users"].items()}
+    except Exception:
+        return {}
+
+
+def check_login(username, password):
+    acc = app_users().get(username.strip().lower())
+    if not acc or acc.get("role") not in ROLE_NAMES:
+        return None
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(acc["salt"]), 200_000).hex()
+    return acc["role"] if hmac.compare_digest(digest, acc["hash"]) else None
+
+
+def sign_out():
+    for k in ("auth_user", "auth_role", "page"):
+        st.session_state.pop(k, None)
+
+
+if "auth_role" not in st.session_state:
+    _, mid, _ = st.columns([1, 1.3, 1])
+    with mid:
+        st.markdown(f'<div style="display:flex;gap:14px;align-items:center;margin:8vh 0 18px"><div style="width:48px;'
+                    f'height:48px;border-radius:14px;background:#312E81;color:#FFFFFF;display:flex;align-items:center;'
+                    f'justify-content:center">{SHIELD_SVG}</div>'
+                    f'<div><div style="font-size:1.6rem;font-weight:800">FraudOps</div>'
+                    f'<div style="color:var(--muted)">Decision Intelligence · sign in</div></div></div>',
+                    unsafe_allow_html=True)
+        locked = time.time() < st.session_state.get("login_locked_until", 0)
+        with st.form("login"):
+            user = st.text_input("Username")
+            pw = st.text_input("Password", type="password")
+            ok = st.form_submit_button("Sign in", type="primary", width="stretch", disabled=locked)
+        if locked:
+            st.error("Too many failed attempts. Wait one minute, then try again.")
+        elif ok:
+            role = check_login(user, pw)
+            if role:
+                st.session_state["auth_user"], st.session_state["auth_role"] = user.strip().lower(), role
+                st.session_state["login_failures"] = 0
+                st.rerun()
+            st.session_state["login_failures"] = st.session_state.get("login_failures", 0) + 1
+            if st.session_state["login_failures"] >= 5:
+                st.session_state["login_locked_until"], st.session_state["login_failures"] = time.time() + 60, 0
+            st.error("Wrong username or password.")
+        if not app_users():
+            st.warning("No accounts are set up yet. Create one with scripts/make_user.py and add it to the secrets.")
+        st.caption("Two roles. The Fraud Ops Lead sees every page and sets the queue policy and review capacity. "
+                   "A Fraud Analyst works the queue and investigates alerts.")
+    st.stop()
+
+ROLE = st.session_state["auth_role"]
+ALLOWED_PAGES = ROLE_PAGES[ROLE]
+if st.session_state.get("page") not in ALLOWED_PAGES:
+    st.session_state["page"] = ALLOWED_PAGES[0]
+
+
+def tested_capture(k, prefix="P4"):
+    """Real fraud-dollar share caught at k reviews a day in the final test (None if not evaluated)."""
+    for r in (fm["metrics"].get("capture_at_capacity", []) if fm else []):
+        if r["policy"].startswith(prefix) and r["capacity"] == k:
+            return float(r["fraud_value_captured"])
+    return None
+
+
 with st.container(key="topnav"):
     n1, n2, n3 = st.columns([2.2, 6, 2.2])
     n1.markdown(f'<div class="brand"><div class="brand-logo">{SHIELD_SVG}</div><div><div class="brand-name">'
                 f'FraudOps</div><div class="brand-sub">Decision Intelligence</div></div></div>',
                 unsafe_allow_html=True)
     with n2:
-        page = st.radio("Navigation", PAGES, key="page", horizontal=True, label_visibility="collapsed",
+        page = st.radio("Navigation", ALLOWED_PAGES, key="page", horizontal=True, label_visibility="collapsed",
                         format_func=lambda p: f"{PAGE_ICONS[p]}&nbsp;{NAV_LABELS[p]}")
     with n3:
         components.html(theme_switch_html(THEME_MODE), height=44)
@@ -957,15 +1034,19 @@ with st.container(key="topnav"):
 days = load_days()
 HERO = st.container()  # the page banner is drawn here, above the settings toolbar
 with st.container(key="toolbar"):
-    st.markdown('<div class="toolbar-title">Decision settings · what-if controls used by every page</div>',
-                unsafe_allow_html=True)
+    tb1, tb2 = st.columns([5, 1.2], vertical_alignment="center")
+    tb1.markdown(f'<div class="toolbar-title">Decision settings · signed in as {html.escape(st.session_state["auth_user"])}'
+                 f' ({ROLE_NAMES[ROLE]})</div>', unsafe_allow_html=True)
+    tb2.button("Sign out", on_click=sign_out, width="stretch")
     t1, t2, t3 = st.columns([1.2, 1.4, 1.6])
     day = t1.selectbox(
         "Simulated day", days["sim_day"].tolist(),
         format_func=lambda d: f"Day {d}  ({int(days.loc[days.sim_day == d, 'n'].iloc[0])} alerts)")
-    policy_label = t2.selectbox("Queue policy", list(policies.keys()))
-    capacity = t3.slider("Review capacity (alerts per day)", 5, 300, 50, 5,
-                         help="Assumption: how many alerts the analyst team can review today.")
+    policy_label = t2.selectbox("Queue policy", list(policies.keys()), disabled=ROLE != "lead",
+                                help=None if ROLE == "lead" else "Set by the Fraud Ops Lead.")
+    capacity = t3.slider("Review capacity (alerts per day)", 5, 300, 50, 5, disabled=ROLE != "lead",
+                         help="Assumption: how many alerts the analyst team can review today."
+                              + ("" if ROLE == "lead" else " Set by the Fraud Ops Lead."))
 policy = policies[policy_label]
 if not fm or not vm:
     st.warning("Model files not found. Run the scripts in src/modeling/ to enable the model pages.")
@@ -1016,6 +1097,26 @@ if page == "Alert queue":
         f'<div class="decision-stat"><div class="lab">{cov_lab}</div><div class="val">{cov_val}</div></div>'
         f'<div class="decision-stat"><div class="lab">Not reviewed</div><div class="val">{n_wait}</div></div></div>',
         unsafe_allow_html=True)
+    if fm:
+        t50 = tested_capture(50)
+        st.caption("**Estimate vs. actual.** Est. fraud $ covered is the model's own estimate, and it counts only today's "
+                   "alerts. The tested KPI on the Fraud risk model page counts real fraud dollars across all of a day's "
+                   "transactions, so it is lower"
+                   + (f": about {t50:.0%} at 50 reviews a day in the final test." if t50 is not None else "."))
+        if ROLE == "lead":
+            exp_sorted = queue["exposure"].sort_values(ascending=False)
+            total_exp, more = max(exp_sorted.sum(), 1e-9), min(capacity + 50, len(queue))
+            if more > capacity:
+                gain = (exp_sorted.head(more).sum() - exp_sorted.head(capacity).sum()) / total_exp
+                line = (f"Reviewing {more} alerts instead of {capacity} today (+{more - capacity} reviews) would raise "
+                        f"estimated fraud covered by {gain * 100:.0f} percentage points.")
+            else:
+                line = (f"All {len(queue)} of today's alerts already fit inside a capacity of {capacity}, so extra "
+                        f"reviewers would not add coverage today.")
+            tested = " · ".join(f"{k} a day: {tested_capture(k):.0%}" for k in (25, 50, 100, 200)
+                                if tested_capture(k) is not None)
+            st.info(f"**Capacity trade-off.** {line}"
+                    + (f" In the final test, real fraud dollars caught by capacity: {tested}." if tested else ""))
 
     st.subheader("Review these first")
     st.caption("The highest-priority open alerts under the selected policy. Open one to see why it was raised and decide.")
@@ -1329,6 +1430,10 @@ elif page == "Alert investigation":
                                       help="0 means no purchases in the last 30 days.")
                 prior = w6.number_input("Customer's prior transaction count", min_value=0,
                                         value=int(one["prior_txn_count"].iloc[0]), step=1)
+                if cold:
+                    st.info("**New customer: no history.** The history fields show 0 because nothing is recorded, not "
+                            "because a 0 was recorded; the model treats them as missing. Untick 'New customer' only "
+                            "to test how an existing customer would score.")
                 st.markdown("**③ Recorded source attributes** · *fixed* — IEEE-CIS counts, time deltas, product code "
                             "and card details stay at their recorded values.")
                 st.caption("The Lead's own decision levers are the queue policy and review capacity in the "
@@ -1430,6 +1535,17 @@ elif page == "Alert investigation":
                     st.error("**Scenario not run — the inputs are inconsistent:**\n\n"
                              + "\n".join(f"- {e}" for e in res["errors"]).replace("$", "\\$"))
                 else:
+                    rank_row, cap_row = res["table"][-2], res["table"][-1]
+                    act = "reviewed today" if cap_row["Scenario"] == "Yes" else "not reviewed today"
+                    take = [f"**What changed:** fraud probability {pct(res['base'])} → {pct(res['p'])}; queue rank "
+                            f"{rank_row['Baseline'].split(' of ')[0]} → {rank_row['Scenario'].split(' of ')[0]}.",
+                            "**Action:** " + (f"no change, still {act}." if cap_row["Baseline"] == cap_row["Scenario"]
+                                              else f"changes, now {act}."),
+                            (f"**⚠ Caution:** {len(res['warnings'])} input(s) are outside the range the model was "
+                             "trained on, so treat this result as a rough guide." if res["warnings"] else
+                             "**Reliability:** inputs are within the model's usual range. It is still a model "
+                             "estimate, not proof of fraud.")]
+                    (st.warning if res["warnings"] else st.success)("**Takeaway**\n\n" + "\n\n".join(take))
                     k1, k2, k3 = st.columns(3)
                     k1.metric("Baseline (as recorded)", pct(res["base"]))
                     k2.metric("Scenario", pct(res["p"]), delta=f"{(res['p'] - res['base']) * 100:+.1f} pts",
@@ -1442,8 +1558,8 @@ elif page == "Alert investigation":
                     st.markdown("#### Baseline vs. scenario")
                     st.dataframe(pd.DataFrame(res["table"]), hide_index=True, width="stretch",
                          height=35 * (len(res["table"]) + 1) + 3)
-                    st.markdown("#### Scenario summary")
-                    st.info(res["summary"].replace("$", "\\$"))
+                    with st.expander("Full scenario summary: inputs, comparison, trade-off, implication, limitations"):
+                        st.info(res["summary"].replace("$", "\\$"))
             if st.session_state.get("fraud_whatif_log"):
                 with st.expander("Scenarios run in this session"):
                     st.dataframe(pd.DataFrame(st.session_state["fraud_whatif_log"]), hide_index=True,
@@ -1453,7 +1569,7 @@ elif page == "Alert investigation":
         d_left, d_right = st.columns(2)
         with d_left:
             with st.form("decision_form", clear_on_submit=True):
-                analyst = st.text_input("Analyst name", value=st.session_state.get("analyst", "Fraud Analyst 1"))
+                analyst = st.text_input("Analyst name", value=st.session_state.get("analyst", st.session_state["auth_user"]))
                 action = st.selectbox("Action", list(ACTIONS.keys()), format_func=lambda a: ACTIONS[a])
                 note = st.text_area("Note (optional)", placeholder="e.g. Customer confirmed purchase by phone")
                 submitted = st.form_submit_button("Save decision", type="primary")
@@ -1518,6 +1634,8 @@ elif page == "Fraud risk model":
             wd, wv = min(worst.items(), key=lambda kv: kv[1])
             bullets.append(f"Results vary by day: on the worst test day (day {wd}) the top 50 alerts caught only "
                            f"{wv:.0%} of that day's fraud dollars, so judge the policy over many days, not one.")
+        bullets.append("This is the real, tested result. The Alert queue page shows a different number: the model's "
+                       "own estimate for today's alerts only, which is often higher.")
         bullets.append("Results come from public IEEE-CIS data with generated customer identities: they show "
                        "performance in this simulated setting, not proven performance at a real bank.")
         st.markdown("\n".join(f"- {x}" for x in bullets))

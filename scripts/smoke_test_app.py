@@ -1,7 +1,25 @@
 """Opens every page of the app headlessly and runs one valid and one invalid what-if."""
 from streamlit.testing.v1 import AppTest
 
-at = AppTest.from_file("../app/app.py", default_timeout=180).run()
+# Sign-in: without an account the app must stop at the sign-in page.
+gate = AppTest.from_file("../app/app.py", default_timeout=180).run()
+print("Sign-in page shown      ", "OK" if any(b.label == "Sign in" for b in gate.button) and
+      not [r for r in gate.radio if r.key == "page"] else "NOT SHOWN")
+gate.text_input[0].set_value("nobody")
+gate.text_input[1].set_value("wrong-password")
+gate.button[[b.label for b in gate.button].index("Sign in")].click().run()
+print("Wrong password blocked  ", "OK" if any("Wrong username or password" in e.value for e in gate.error)
+      else "NOT BLOCKED")
+
+analyst = AppTest.from_file("../app/app.py", default_timeout=180)
+analyst.session_state["auth_user"], analyst.session_state["auth_role"] = "test-analyst", "analyst"
+analyst.run()
+print("Analyst pages limited   ", "OK" if len(analyst.radio(key="page").options) == 2 and
+      [s.disabled for s in analyst.slider if s.label.startswith("Review capacity")] == [True] else "NOT LIMITED")
+
+at = AppTest.from_file("../app/app.py", default_timeout=180)
+at.session_state["auth_user"], at.session_state["auth_role"] = "test-lead", "lead"
+at.run()
 problems = []
 for page in ["Alert queue", "Alert investigation", "Fraud risk model", "Alert volume forecast"]:
     at.radio(key="page").set_value(page).run()
