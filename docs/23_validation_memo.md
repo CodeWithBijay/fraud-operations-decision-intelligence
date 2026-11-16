@@ -37,7 +37,8 @@ were pre-registered in Week 11; the Week 12 criteria were written in the same se
    a Lead trusting the forecast could leave about 90% of alerts unreviewed on a spike day.
 3. **Generated customer IDs are implausible at the extremes (TEST-04, Partial).** One generated "customer" has
    4,015 transactions in 182 days, because the grouping rule merges cards. Velocity and z-score rules are distorted
-   for such IDs. **The real-world realism of the generated IDs is unvalidated:** amounts match the source, but that
+   for such IDs. Separately, 525 transactions have extreme amount z-scores (customers whose earlier
+   amounts were identical), which affects 35 amount-spike alerts (TEST-33, Fail). **The real-world realism of the generated IDs is unvalidated:** amounts match the source, but that
    only confirms a faithful load.
 4. **Generated help text contradicted the data (TEST-23, Fail, then fixed).** The glossary, and therefore the
    Assistant, said an alert needs "at least one" rule; the data show at least two. A plural question ("KPIs")

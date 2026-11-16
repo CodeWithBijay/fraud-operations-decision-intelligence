@@ -22,6 +22,30 @@ Reproduce: `python3 scripts/validate_week12.py` → `evidence/validation_results
 - **Use restrictions:** IEEE-CIS is released for the Kaggle competition. Its identity fields are anonymized, but it
   is still real transaction data, so the database is not published, and the app shows generated IDs only.
 
+### Variable dictionary (app database)
+| Variable | Type | Unit / meaning | Permissible values | Origin |
+|---|---|---|---|---|
+| transaction_id | bigint | Source transaction key | unique, not null | IEEE-CIS |
+| transaction_dt | bigint | Seconds from the dataset's reference time | 86,400 – 15,811,131 | IEEE-CIS |
+| sim_day | integer | floor(transaction_dt / 86,400) | 1 – 182 | Derived |
+| transaction_amt | double | US dollars | > 0 (observed 0.251 – 31,937.39) | IEEE-CIS |
+| product_cd, card4, card6, p_emaildomain | text | Product code, card network, card type, purchaser email domain | listed categories or null | IEEE-CIS |
+| c1–c14, d1, d10–d15 | double | Anonymized counts / time deltas | ≥ 0 or null (as published) | IEEE-CIS |
+| customer_id | varchar | Generated customer | `CUST_` + 16 hex, not null | Generated |
+| account_id | varchar | Generated account, nested in one customer | `ACCT_` + 16 hex, not null | Generated |
+| device_id | varchar | Generated device, nested in one customer | `DEV_` + 16 hex, or null when identity data is absent | Generated |
+| prior_txn_count | bigint | Customer's earlier transactions | ≥ 0 | Derived (point-in-time) |
+| cold_start_flag | boolean | New customer | TRUE ⇔ prior_txn_count = 0 | Derived |
+| hours_since_previous_txn | numeric | Hours | ≥ 0; null only for new customers | Derived |
+| txn_count_24h | bigint | Customer's earlier transactions in the past 24 h | 0 ≤ value ≤ prior_txn_count | Derived |
+| customer_avg_amt_30d, customer_std_amt_30d | double | US dollars, past 30 days | ≥ 0; null when no 30-day history | Derived |
+| amount_deviation_from_customer_avg | double | US dollars | = transaction_amt − customer_avg_amt_30d | Derived |
+| customer_amount_zscore | double | Standard deviations | finite; null when the 30-day standard deviation is undefined | Derived |
+| r1 … r6, risk_score | boolean, integer | Alert rule flags; number of rules fired | risk_score = Σ flags; alert ⇔ risk_score ≥ 2 | Derived |
+
+**Relationship rules:** an account and a device each belong to exactly one customer; history fields use only earlier
+transactions; an alert requires at least two rules.
+
 ## B. Structural and logical validity
 | Rule tested | Violations |
 |---|---|
@@ -34,10 +58,16 @@ Reproduce: `python3 scripts/validate_week12.py` → `evidence/validation_results
 | Existing customer missing the time gap | 0 |
 | 24-hour count > prior count | 0 |
 | Alerts without a feature row / duplicate alerts / alerts without model inputs | 0 / 0 / 0 |
+| Declared data types (all columns typed; loaded through typed tables) | 0 type violations |
+| ID format (`CUST_`/`ACCT_`/`DEV_` + 16 hex) | 0 / 0 / 0 |
+| Account or device shared by more than one customer | 0 / 0 |
+| Deviation ≠ amount − 30-day average | 0 |
+| **Amount z-score with \|z\| > 1,000** (spread of earlier amounts ≈ 0) | **525** (max 4.3×10¹⁷); 35 of 8,978 amount-spike alerts depend on them |
+| z-score missing for existing customers | 112,896, by design (46,536 have 1 prior transaction; 35,541 have no 30-day history) |
 | **Customers with two "first" transactions** | **3 of 89,522** |
 | Device ID missing | 471,919 (79.9%), by design: identity data exists for about 24% of IEEE-CIS transactions |
 
-**Resolution:** the 3 customers whose first two transactions share a timestamp are left as they are and documented.
+**Resolution:** the 525 extreme z-scores are left in place and documented (TEST-33, Fail); the fix is to floor the standard deviation (e.g. at $1) or require ≥ 3 earlier amounts, then re-run TEST-03 and TEST-13. The 3 customers whose first two transactions share a timestamp are left as they are and documented.
 They affect at most 6 cold-start flags (0.001%) and cannot change any KPI.
 
 ## C. Alert rules recomputed independently (TEST-03)
@@ -54,6 +84,10 @@ are, correctly, not alerts.
   generated customers have more than 1,000 transactions, and one has 4,015 in 182 days**, which is implausible for a real cardholder. The grouping
   rule merges many cards that share `card1 + addr1 + email`. Velocity and z-score features, and so rules R1–R3, are
   distorted for such IDs.
+- **Subgroup patterns (alert rate = alerts ÷ transactions):** product S 11.9% (1,378 / 11,628), C 7.6% (5,224 / 68,519),
+  R 5.1% (1,912 / 37,699), W 3.3% (14,605 / 439,670), H 1.7% (569 / 33,024); credit 5.9% (8,780 / 148,986),
+  debit 3.4% (14,843 / 439,938). The rules flag S, C and credit transactions more often; W, the largest product,
+  is flagged least, which matches the model's W weakness (E02).
 - **No independent real-world reference** exists for the generated customer, account and device structure.
   **Empirical realism of the generated IDs remains unvalidated**; agreement with our own rules shows internal
   consistency only.
