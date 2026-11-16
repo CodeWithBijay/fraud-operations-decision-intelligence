@@ -8,8 +8,8 @@
 The intended decision-maker is a Fraud Operations Lead who must (R1) choose which of the day's alerts the team
 reviews within about 50 reviews a day, (R2) plan tomorrow's capacity, (R3) let analysts investigate one alert and
 test a what-if, (R4) understand the numbers and their limits, and (R5) keep policy and capacity under the Lead's
-control. The KPIs are unchanged: KPI 1 is fraud value captured at capacity; KPI 2 is daily alert overflow. We set
-acceptance criteria before testing; the model criteria were pre-registered in Week 11. We tested 33 claims: 17 pass,
+control. The KPIs are unchanged: KPI 1 is fraud value captured at capacity; KPI 2 is daily alert overflow. The model criteria
+were pre-registered in Week 11; the Week 12 criteria were written in the same session as the checks, some after earlier results were known (marked in the matrix), and none was changed or lowered. We tested 33 claims: 17 pass,
 5 partial pass, 5 fail, 6 not tested (four of these await tonight's task-based session).
 
 ## 2. Supported claims

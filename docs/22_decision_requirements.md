@@ -8,7 +8,7 @@ substitute: a classmate outside the team who tested the app as an analyst (`docs
 (d) the public IEEE-CIS dataset documentation (`docs/04`). Each matrix row names its source.
 **KPIs (unchanged since Week 9):** KPI 1, fraud value captured at review capacity; KPI 2, daily alert overflow
 above capacity. Definitions are in `docs/21_glossary.md`.
-**Acceptance criteria** below were written before the Week 12 tests were run. The model thresholds (KPI 1 must
+**Acceptance criteria** for the model rows were pre-registered in Week 11. The Week 12 data, report and UI criteria were written on 15 Nov in the same working session as the checks, some after earlier results were known; the matrix marks these rows, and no criterion was changed or lowered after testing. The model thresholds (KPI 1 must
 beat every baseline; volume MAE must beat the naive forecasts) were pre-registered in Week 11.
 
 ## R1 — Prioritize today's alerts within review capacity (KPI 1)
