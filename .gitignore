@@ -55,3 +55,4 @@ __pycache__/
 reports/customer_id_analysis/*_details.csv
 reports/customer_id_analysis/customer_incomplete_transactions.csv
 reports/customer_id_analysis/customer_unresolved_transactions.csv.streamlit/secrets.toml
+.streamlit/secrets.toml
