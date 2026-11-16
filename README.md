@@ -1,4 +1,57 @@
 # FraudOps Decision Intelligence
+
+> ## 📌 Weeks 12–13: Validation of the Decision-Support Application
+> **Start here.** This section summarizes the validation submission; earlier weeks follow below.
+
+| Deliverable | Where |
+|---|---|
+| **Validation matrix** (33 tests, course template) | [`validation/Week12_Validation_Matrix.xlsx`](validation/Week12_Validation_Matrix.xlsx) |
+| **Validation memo** (2–3 pages) | [`docs/23_validation_memo.md`](docs/23_validation_memo.md) |
+| **Decision requirements** R1–R5 | [`docs/22_decision_requirements.md`](docs/22_decision_requirements.md) |
+| **Evidence folder** (labelled E01–E05, raw results) | [`evidence/`](evidence/) · index: [`evidence/README.md`](evidence/README.md) |
+| Synthetic-data validation | [`evidence/E01_synthetic_data.md`](evidence/E01_synthetic_data.md) |
+| Reports and predictive models | [`evidence/E02_reports_and_models.md`](evidence/E02_reports_and_models.md) |
+| UI, roles and Assistant | [`evidence/E03_ui_and_assistant.md`](evidence/E03_ui_and_assistant.md) |
+| Task-based user test | [`evidence/E04_user_test_2026-11-15.md`](evidence/E04_user_test_2026-11-15.md) |
+| Two end-to-end walkthroughs | [`evidence/E05_end_to_end_walkthroughs.md`](evidence/E05_end_to_end_walkthroughs.md) |
+| Reproducible validation scripts | [`scripts/validate_week12.py`](scripts/validate_week12.py) · [`scripts/smoke_test_app.py`](scripts/smoke_test_app.py) |
+| Group contributions | [`docs/18_contributions.md`](docs/18_contributions.md) |
+| Plain-language glossary | [`docs/21_glossary.md`](docs/21_glossary.md) |
+| Videos | 7-minute demo: [link] · 12-minute matrix walkthrough: [link] |
+| Live app | [link] (sign in with the account provided in the Canvas submission) |
+
+**Decision-maker:** Fraud Operations Lead (with Fraud Analysts). **KPIs (unchanged):** KPI 1, fraud value captured
+at review capacity; KPI 2, daily alert overflow.
+
+### Key findings
+| Area | Result |
+|---|---|
+| Synthetic data | 590,540 records: 0 duplicates, 0 missing required fields. All six alert rules recomputed independently reproduce the 23,688 alerts exactly (0 mismatches). **Partial:** 20 generated customers have more than 1,000 transactions, so the realism of the generated IDs is unvalidated. |
+| Reports | Volume figures reconcile with the database on all 44 test days; the queue totals have an independent SQL recalculation (day 171: $25,997.55 under P1 at capacity 50). |
+| Fraud model (KPI 1) | 32.7% of fraud dollars captured at 50 reviews a day, against 19.7% for largest-amount-first and 2.0% at random; well calibrated (ECE 0.003). **Fail:** product W (11% caught) and debit cards (30%) are under-served. |
+| Volume model (KPI 2) | MAE 41.5, against 56.8 for same-as-yesterday; 91% overflow accuracy at capacity 50. **Fail:** spikes (day 171: forecast 56, actual 665); busy-day coverage 67%. |
+| UI and roles | Smoke test passes on all pages; invalid inputs are blocked; analysts cannot change policy or capacity; passwords stored as salted hashes. |
+| Assistant (RAG) | 4 of 4 standard questions answered from the correct sources. **Two defects found and fixed:** the glossary said "at least one rule" (alerts need two), and plural questions ("KPIs") found nothing. Both retested and passing. |
+
+**Conclusion:** suitable for **classroom demonstration**; **not yet** for a controlled pilot (product W, spikes and
+generated identities must be addressed first); **not** for operational use. See the memo for corrective actions.
+
+### Application changes made because of validation and user feedback
+Sign-in with Lead/Analyst roles · estimate-vs-actual notes · a three-line what-if takeaway with range warnings ·
+a "new customer, no history" note · a capacity trade-off for the Lead · the FraudOps Assistant chatbot (Gemini with
+retrieval from the project documents) and a glossary · a corrected alert definition · plural-word search.
+
+### Reproduce the validation
+```bash
+pip install -r requirements.txt
+python3 scripts/validate_week12.py          # read-only SQL checks -> evidence/validation_results.json
+cd scripts && python3 smoke_test_app.py     # headless UI test of every page, roles and the Assistant
+```
+Database settings come from `.streamlit/secrets.toml` (not in Git) or the `PG*` environment variables.
+The previous submission is preserved at commit `e15d032` (Week 11).
+
+---
+
 ### Model Evaluation and Decision Support for Fraud Alert Operations
 
 | | |
