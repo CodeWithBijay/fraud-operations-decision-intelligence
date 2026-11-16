@@ -46,7 +46,7 @@ caught the most fraud dollars at 50 in the final test), not a guarantee for any 
 | 2. Input data | Day 170 had 84 alerts; days 163–169 averaged 154 (including a 340-alert spike on day 164, which faded within a day); nothing signals a spike on day 171. | Verified (database daily counts) |
 | 3. Model output | Forecast for day 171: **56 alerts (90% range 27–92)**. | Verified (`alert_volume_metrics.json` test predictions) |
 | 4. Reality | **665 alerts** arrived on day 171, 12× the forecast and 7× the upper bound. | Verified (database) |
-| 5. UI presentation | The Volume page would show 56 against capacity 50 (overflow likely but small), the range, and the busy-day/spike limitation note. | Partly verified (page renders; day-170 view not screenshotted) |
+| 5. UI presentation | The Volume page would show 56 against capacity 50 (overflow likely but small), the range, and the busy-day/spike limitation note. | Verified on screen (`evidence/screenshots/e05_day170_volume.png`) |
 | 6. User interpretation | A Lead trusting the forecast plans near-normal staffing. | Not evidenced |
 | 7. Consequence and action | At capacity 50, 615 alerts (92%) go unreviewed on day 171. Even planning to the upper bound (92) leaves 573 unreviewed. The safe action is to use outside signals (campaigns, outages, attack reports). On day 171 itself the queue still ranks the 665 alerts by expected exposure (P1 top 50 = $25,997.55 of $93,329.24). | Verified figures; action is a recommendation |
 

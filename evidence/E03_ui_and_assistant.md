@@ -35,6 +35,16 @@ classroom demonstration, not bank-grade access control: there is no audit trail 
 | Volume forecast and range | R2 | Forecast, range and capacity comparison readable? | User task T4 |
 | Assistant chatbot and glossary | R4 | Correct, sourced, plain answers? | §C and user task T5 |
 
+## B2. Course UI functions → evidence
+| UI function | Validation question | Element and requirement | Element evidence | User-understanding evidence |
+|---|---|---|---|---|
+| KPI cards and charts | Correct value, unit, period, comparison? | Decision banner, tiles, model tables (R1, R2) | TEST-07, 08, 35, 36: on screen = SQL/JSON | Task T1, T4 (E04) |
+| Filters | Applied consistently; active population clear? | Day, policy, capacity; "Day N (k alerts)"; role locks (R1, R2, R5) | TEST-25, 35 | Task T1, T4 |
+| Scenario controls | Valid inputs enforced; controllable vs. external? | What-if inputs, grouped "you can change" / "fixed" (R3) | TEST-10 | Task T3 |
+| Comparison views | Baseline, modified and predicted change distinguishable? | Baseline vs. scenario table + takeaway (R3) | TEST-11 | Task T3 |
+| Model explanations | Contributions read without treating them as causes? | Driver chart + "associations, not causes" caption (R3) | TEST-11 | Task T2 (causal question) |
+| Warnings and summaries | Unsupported scenarios, limits, uncertainty recognized? | Range warning, trust boxes, estimate note, Assistant (R3, R4) | TEST-10, 12, 21 | Task T3, T5 |
+
 ## C. Assistant (retrieval-augmented chatbot) tests
 Criterion, set before testing: for each standard question, the correct glossary or report section is among the top
 4 sources, and no answer states a figure or rule that contradicts the documents.
