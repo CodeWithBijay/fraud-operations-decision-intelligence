@@ -18,7 +18,7 @@
 | Group contributions | [`docs/18_contributions.md`](docs/18_contributions.md) |
 | Plain-language glossary | [`docs/21_glossary.md`](docs/21_glossary.md) |
 | Videos | 7-minute demo: [link] · 12-minute matrix walkthrough: [link] |
-| Live app | [link] (sign in with the account provided in the Canvas submission) |
+| Live app | [https://fraud-operations-decision-intelligence-group4.streamlit.app](https://fraud-operations-decision-intelligence-group4.streamlit.app) (sign in with the account provided in the Canvas submission) |
 
 **Decision-maker:** Fraud Operations Lead (with Fraud Analysts). **KPIs (unchanged):** KPI 1, fraud value captured
 at review capacity; KPI 2, daily alert overflow.
@@ -314,7 +314,6 @@ Complete the user test and make the change it points to; then, for Week 12, buil
 | Document | Content |
 |---|---|
 | [`docs/20_week11_evaluation_report.md`](docs/20_week11_evaluation_report.md) | Week 11 evaluation report |
-| [`docs/19_user_test_protocol.md`](docs/19_user_test_protocol.md) | User-test protocol |
-| [`docs/19a_participant_sheet.md`](docs/19a_participant_sheet.md) | Participant sheet |
-| [`docs/19c_ai_pilot_walkthrough.md`](docs/19c_ai_pilot_walkthrough.md) | AI-assisted pilot walkthrough (not a user test) |
+| [`evidence/E04_user_test_2026-11-15.md`](evidence/E04_user_test_2026-11-15.md) | Task-based user test (15 Nov 2026) |
+| [`docs/19b_user_test_findings.md`](docs/19b_user_test_findings.md) | Earlier informal review by a classmate (Week 11) |
 | [`docs/18_contributions.md`](docs/18_contributions.md) | Contributions and use of generative AI |

@@ -104,12 +104,12 @@ improve probability quality but give no measurable KPI gain; the volume data hav
 priority"); a confusing "0 of 53 days" statement was replaced by the worst-day result.
 
 ## 7. User test
-**Status: not completed by the submission deadline.** The protocol (`docs/19_user_test_protocol.md`) and participant
-sheet (`docs/19a_participant_sheet.md`) are ready. A session with a participant outside the group will be run and its
+**Status: not completed by the submission deadline.** The protocol (`evidence/E04_user_test_2026-11-15.md`) and participant
+sheet (in `evidence/E04`) are ready. A session with a participant outside the group will be run and its
 findings, and the resulting app change, added in a follow-up commit.
 
 **Pilot walkthrough (not a user test).** An AI-assisted walkthrough of the five tasks
-(`docs/19c_ai_pilot_walkthrough.md`) found one bug, now fixed: dollar amounts in warning boxes displayed as garbled
+(not kept in the repository) found one bug, now fixed: dollar amounts in warning boxes displayed as garbled
 math text. It flagged three items for the user test to confirm: the row-click wording, missing chart labels and the two
 capacity controls.
 
