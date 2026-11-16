@@ -1,7 +1,7 @@
 # Validation Memo: FraudOps Decision Intelligence (Weeks 12–13)
 
 **To:** Prof. Mudigonda, AA 5960 · **From:** Bijay Bahadur Paudel and Gerald Hlabiso · **Date:** 15 November 2026
-**Evidence:** `validation/Week12_Validation_Matrix.xlsx` (33 rows), `evidence/` (E01–E05, `validation_results.json`),
+**Evidence:** `validation/Week12_Validation_Matrix.xlsx` (39 rows), `evidence/` (E01–E05, `validation_results.json`),
 `docs/22_decision_requirements.md`. Reproduce with `scripts/validate_week12.py` and `scripts/smoke_test_app.py`.
 
 ## 1. What we validated
@@ -9,8 +9,8 @@ The intended decision-maker is a Fraud Operations Lead who must (R1) choose whic
 reviews within about 50 reviews a day, (R2) plan tomorrow's capacity, (R3) let analysts investigate one alert and
 test a what-if, (R4) understand the numbers and their limits, and (R5) keep policy and capacity under the Lead's
 control. The KPIs are unchanged: KPI 1 is fraud value captured at capacity; KPI 2 is daily alert overflow. The model criteria
-were pre-registered in Week 11; the Week 12 criteria were written in the same session as the checks, some after earlier results were known (marked in the matrix), and none was changed or lowered. We tested 33 claims: 17 pass,
-5 partial pass, 5 fail, 6 not tested (four of these await tonight's task-based session).
+were pre-registered in Week 11; the Week 12 criteria were written in the same session as the checks, some after earlier results were known (marked in the matrix), and none was changed or lowered. We tested 39 claims (including two retests): 23 pass,
+9 partial pass, 6 fail, 1 not tested.
 
 ## 2. Supported claims
 - **The alert data are internally consistent.** On 590,540 transactions there were zero duplicate IDs and zero
@@ -44,10 +44,10 @@ were pre-registered in Week 11; the Week 12 criteria were written in the same se
    Assistant, said an alert needs "at least one" rule; the data show at least two. A plural question ("KPIs")
    returned nothing (TEST-22). Both were fixed and retested (TEST-22R, TEST-23R pass). This shows that generated
    explanations need the same validation as numbers.
-5. **Not yet verified on screen (TEST-07, TEST-08).** Database recalculations exist (day 171: 665 alerts; $25,997.55
-   in review under P1 at capacity 50), but the on-screen values still need to be confirmed and captured.
-6. **Limited user evidence (TEST-20, 27, 30, 31).** There is one informal review (Nov 4) and one task-based session
-   (Nov 15, `evidence/E04`). Both participants are classmates, not fraud-operations staff.
+5. **On-screen values verified (TEST-07, TEST-08, Pass).** Counts and queue totals shown in the app match the database.
+6. **Limited user evidence (TEST-20, 27, 30, 31, all Partial pass).** One informal review (Nov 4) and one task-based
+   session (Nov 15, `evidence/E04`) with one participant outside the group, not fraud-operations staff. He chose the
+   right first alert but by risk % only, read the largest driver as a cause, and confused forecast with actual.
 7. **Assumptions:** capacity (50) is assumed, not observed; there is only 6 months of data with no seasonality; and
    the Assistant depends on an external AI service (with a search-only fallback).
 

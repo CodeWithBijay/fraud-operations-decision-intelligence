@@ -222,7 +222,7 @@ The fraud model was not switched back after the test, because that would be tuni
 
 ## 7. User test
 
-**Status: pending.** The protocol (`docs/19_user_test_protocol.md`) and participant sheet (`docs/19a_participant_sheet.md`) are ready. The session with a participant outside the group, its findings and the resulting app change will be added in a follow-up commit. An AI-assisted pilot walkthrough, clearly labeled as **not** a user test, is in `docs/19c_ai_pilot_walkthrough.md`; it found one bug, which was fixed.
+**Status: conducted on 15 Nov 2026** with one participant outside the group ([`evidence/E04_user_test_2026-11-15.md`](evidence/E04_user_test_2026-11-15.md)). All four user rows (TEST-20, 27, 30, 31) are **Partial pass**: he chose the right first alert but by risk % only, read the largest driver as a cause, and confused forecast with actual. An earlier informal review is in [`docs/19b_user_test_findings.md`](docs/19b_user_test_findings.md).
 
 ---
 
@@ -290,7 +290,7 @@ The raw IEEE-CIS files are not redistributed, because the Kaggle competition's r
 4. The volume model cannot anticipate sudden spikes and assumes the alert rules stay unchanged.
 5. Explanations and what-if results are associations, not causal effects; C1–C14 are anonymized and correlated.
 6. Review capacity is a user-set assumption.
-7. The user test with an outside participant is still pending.
+7. User evidence is one task-based session with one non-expert participant (TEST-20, 27, 30, 31: Partial pass).
 
 ## 11. Next steps
 

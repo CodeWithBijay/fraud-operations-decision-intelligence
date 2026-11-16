@@ -13,7 +13,7 @@ defaults P4 and capacity 50. Every value below was read from what the app render
 "Routine" (the course's *typical* scenario) means an ordinary test-period day with no spike: 104 alerts, close to the
 median of 112.5 across 182 days, with capacity at its usual 50. It is one example, not proof of all typical days.
 **Matrix rows used:** TEST-03 (rules), TEST-07/08 (display), TEST-12 (estimate note), TEST-13 (policy vs. baselines),
-TEST-14 (calibration), TEST-35/36 (report checks), TEST-32 (decision log), TEST-20 (user interpretation, pending), TEST-28.
+TEST-14 (calibration), TEST-35/36 (report checks), TEST-32 (decision log), TEST-20 (user interpretation, Partial pass), TEST-28.
 
 | Link | What happened | Status |
 |---|---|---|
@@ -23,7 +23,7 @@ TEST-14 (calibration), TEST-35/36 (report checks), TEST-32 (decision log), TEST-
 | 4. Ranking and capacity | Under P4 the alert is **#1 of 104**. #2 is a $600 alert at **72.5%** risk (exposure $435.05): P4 puts the larger expected loss first, even though #2 is more likely to be fraud. The capacity cut falls between **#50** (Txn 3514340, $511.95, 2.8%, exposure $14.53) and **#51** (Txn 3515630, $202.88, 7.1%, exposure $14.32). The boundary is a near-tie of $0.21. | Verified (rendered queue table) |
 | 5. UI presentation | Banner: "**Review the top 50 alerts today** · 54 alerts ($22,801) will not be reviewed · Amount in review **$53,519** · Est. fraud $ covered **92%** · Not reviewed 54". Note: "Est. fraud $ covered is the model's own estimate … the tested KPI … is lower: about **33%** at 50 reviews a day". Lead's trade-off: "+50 reviews would raise estimated fraud covered by **8 points**". "Review these first" lists #1 Txn 3513661 with Open. Investigation page: "#1 of 104", the two rules ticked, and "transactions scored at a similar level turned out to be fraud **19.3%** of the time". | Verified that the UI computes and presents these values (headless render). Confirmed on screen 2026-11-15 (`evidence/screenshots/e05_day160_queue.png`) |
 | 6. Two measures that conflict | The 92% is an estimate over **today's alerts only**, built from probabilities. The 33% is the **tested share of all fraud dollars** over 53 past days. They are different quantities, and the 92% is optimistic: the app itself shows that alerts scored like #1 (32.7%) were fraud 19.3% of the time. | Verified (both shown, with the note) |
-| 7. User interpretation | Whether a Lead reads 92% as an estimate rather than a promise, and understands why #1 beats the 72.5% alert. | **Not evidenced** until the task-based test (TEST-20) |
+| 7. User interpretation | Whether a Lead reads 92% as an estimate rather than a promise, and understands why #1 beats the 72.5% alert. | **Partly evidenced** (TEST-20, E04): the participant chose the right first alert but by risk % alone, not expected loss |
 | 8. Action (review workflow, not an endorsement of P4) | (a) Assign alerts #1–#50 in rank order. (b) Treat 92% as the model's view of today's queue and plan on the tested ~33% of all fraud dollars. (c) Because #50 and #51 differ by $0.21, let analysts with spare time take #51–#55 next. (d) If the Lead prefers likelihood over loss, switching to P3 changes 16 of the 50 reviewed alerts (P1 also changes 16). (e) Each analyst opens the alert, checks the rules and history, and records a decision. The model ranks; it does not decide. | Recommended workflow; outcome not evidenced |
 
 **Comparison with the earlier model.** In Week 11, the selected model (32.7% at 50) and the Week 10 specification
