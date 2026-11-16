@@ -10,8 +10,10 @@ unmodified app (commit `6c74225`) was rendered headlessly with Streamlit AppTest
 defaults P4 and capacity 50. Every value below was read from what the app rendered (`E05_day160_trace.json`).
 
 ## Walkthrough 1: routine queue decision (day 160)
-"Routine" means an ordinary test-period day with no spike (104 alerts, near the median of 112). It is one example,
-not proof of typical operating conditions.
+"Routine" (the course's *typical* scenario) means an ordinary test-period day with no spike: 104 alerts, close to the
+median of 112.5 across 182 days, with capacity at its usual 50. It is one example, not proof of all typical days.
+**Matrix rows used:** TEST-03 (rules), TEST-07/08 (display), TEST-12 (estimate note), TEST-13 (policy vs. baselines),
+TEST-14 (calibration), TEST-35/36 (report checks), TEST-32 (decision log), TEST-20 (user interpretation, pending), TEST-28.
 
 | Link | What happened | Status |
 |---|---|---|
@@ -40,6 +42,11 @@ of the 92% estimate, are **not evidenced**. The evidence supports a *retrospecti
 caught the most fraud dollars at 50 in the final test), not a guarantee for any single day.
 
 ## Walkthrough 2: spike planning (day 170 → day 171)
+Challenging because it combines a **boundary condition** (665 alerts, 13× capacity), **insufficient evidence** (nothing in
+the history foresees it) and **conflicting objectives** (overtime cost vs. unreviewed fraud).
+**Matrix rows used:** TEST-17 (volume model), TEST-18 (busy-day/spike failure), TEST-08 (day-171 display), TEST-30 (user
+interpretation, pending), TEST-29.
+
 | Link | What happened | Status |
 |---|---|---|
 | 1. Decision need | On day 170 the Lead decides staffing for day 171 (R2). Conflicting objectives: avoid overtime cost vs. avoid unreviewed fraud. | — |
