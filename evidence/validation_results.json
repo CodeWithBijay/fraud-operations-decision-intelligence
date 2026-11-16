@@ -1,0 +1,1004 @@
+{
+  "run_at": "2026-11-16T02:19:36+00:00",
+  "integrity": {
+    "rows": 590540,
+    "unique_ids": 590540,
+    "null_required": 0,
+    "null_device": 471919,
+    "nonpositive_amount": 0,
+    "negative_values": 0,
+    "cold_flag_mismatch": 0,
+    "new_customer_with_history": 0,
+    "existing_missing_gap": 0,
+    "count24_above_prior": 0,
+    "customers_with_two_first_txns": 3,
+    "min_amt": 0.251,
+    "max_amt": 31937.391
+  },
+  "orphans": {
+    "alerts_without_features": 0,
+    "duplicate_alerts": 0,
+    "alerts_without_model_inputs": 0
+  },
+  "rules": {
+    "alerts": 23688,
+    "meet_two_or_more_rules": 23688,
+    "alert_with_fewer_than_two_rules": 0,
+    "two_rules_but_not_alerted": 0,
+    "flag_mismatches": 0,
+    "score_mismatches": 0,
+    "exactly_one_rule": 181089
+  },
+  "plausibility": {
+    "mean_amt": "135.0272",
+    "median_amt": "68.769",
+    "median_txn_per_customer": 2.0,
+    "max_txn_per_customer": 4015,
+    "customers_over_1000_txns": 20
+  },
+  "coverage": {
+    "alerts_by_product": {
+      "C": 5224,
+      "H": 569,
+      "R": 1912,
+      "S": 1378,
+      "W": 14605
+    },
+    "alerts_by_card_type": {
+      "credit": 8780,
+      "debit": 14843,
+      "debit or credit": 1,
+      "missing": 64
+    },
+    "alerts_5000_plus": 12
+  },
+  "daily": [
+    {
+      "sim_day": 1,
+      "alerts": 264,
+      "amount": 210048.51900000015
+    },
+    {
+      "sim_day": 2,
+      "alerts": 185,
+      "amount": 99728.53799999994
+    },
+    {
+      "sim_day": 3,
+      "alerts": 82,
+      "amount": 51633.81900000001
+    },
+    {
+      "sim_day": 4,
+      "alerts": 174,
+      "amount": 117746.91399999992
+    },
+    {
+      "sim_day": 5,
+      "alerts": 153,
+      "amount": 131853.40999999995
+    },
+    {
+      "sim_day": 6,
+      "alerts": 132,
+      "amount": 92171.99799999998
+    },
+    {
+      "sim_day": 7,
+      "alerts": 185,
+      "amount": 144371.79899999997
+    },
+    {
+      "sim_day": 8,
+      "alerts": 174,
+      "amount": 121657.30199999998
+    },
+    {
+      "sim_day": 9,
+      "alerts": 95,
+      "amount": 62431.91799999998
+    },
+    {
+      "sim_day": 10,
+      "alerts": 84,
+      "amount": 39106.30300000001
+    },
+    {
+      "sim_day": 11,
+      "alerts": 178,
+      "amount": 141738.89999999994
+    },
+    {
+      "sim_day": 12,
+      "alerts": 130,
+      "amount": 93156.01899999994
+    },
+    {
+      "sim_day": 13,
+      "alerts": 177,
+      "amount": 135429.03999999995
+    },
+    {
+      "sim_day": 14,
+      "alerts": 212,
+      "amount": 136880.8199999999
+    },
+    {
+      "sim_day": 15,
+      "alerts": 264,
+      "amount": 153205.29599999994
+    },
+    {
+      "sim_day": 16,
+      "alerts": 194,
+      "amount": 76890.26400000001
+    },
+    {
+      "sim_day": 17,
+      "alerts": 144,
+      "amount": 53337.513999999974
+    },
+    {
+      "sim_day": 18,
+      "alerts": 327,
+      "amount": 177102.90699999998
+    },
+    {
+      "sim_day": 19,
+      "alerts": 324,
+      "amount": 180782.89500000022
+    },
+    {
+      "sim_day": 20,
+      "alerts": 385,
+      "amount": 170022.5160000001
+    },
+    {
+      "sim_day": 21,
+      "alerts": 312,
+      "amount": 165866.77400000015
+    },
+    {
+      "sim_day": 22,
+      "alerts": 437,
+      "amount": 226097.91700000004
+    },
+    {
+      "sim_day": 23,
+      "alerts": 321,
+      "amount": 94177.56700000005
+    },
+    {
+      "sim_day": 24,
+      "alerts": 234,
+      "amount": 66215.104
+    },
+    {
+      "sim_day": 25,
+      "alerts": 206,
+      "amount": 37014.405000000006
+    },
+    {
+      "sim_day": 26,
+      "alerts": 224,
+      "amount": 96156.65699999996
+    },
+    {
+      "sim_day": 27,
+      "alerts": 222,
+      "amount": 96017.9249999999
+    },
+    {
+      "sim_day": 28,
+      "alerts": 184,
+      "amount": 111279.02199999994
+    },
+    {
+      "sim_day": 29,
+      "alerts": 279,
+      "amount": 159483.27599999995
+    },
+    {
+      "sim_day": 30,
+      "alerts": 207,
+      "amount": 113623.51699999998
+    },
+    {
+      "sim_day": 31,
+      "alerts": 133,
+      "amount": 67584.94599999997
+    },
+    {
+      "sim_day": 32,
+      "alerts": 67,
+      "amount": 34698.474
+    },
+    {
+      "sim_day": 33,
+      "alerts": 149,
+      "amount": 86731.538
+    },
+    {
+      "sim_day": 34,
+      "alerts": 221,
+      "amount": 135335.92899999997
+    },
+    {
+      "sim_day": 35,
+      "alerts": 161,
+      "amount": 97739.90099999993
+    },
+    {
+      "sim_day": 36,
+      "alerts": 181,
+      "amount": 115364.23999999995
+    },
+    {
+      "sim_day": 37,
+      "alerts": 115,
+      "amount": 67095.00399999999
+    },
+    {
+      "sim_day": 38,
+      "alerts": 71,
+      "amount": 26655.157000000003
+    },
+    {
+      "sim_day": 39,
+      "alerts": 130,
+      "amount": 92239.1679999999
+    },
+    {
+      "sim_day": 40,
+      "alerts": 124,
+      "amount": 110845.21099999991
+    },
+    {
+      "sim_day": 41,
+      "alerts": 139,
+      "amount": 130420.88399999993
+    },
+    {
+      "sim_day": 42,
+      "alerts": 106,
+      "amount": 97658.10099999997
+    },
+    {
+      "sim_day": 43,
+      "alerts": 163,
+      "amount": 131843.3469999999
+    },
+    {
+      "sim_day": 44,
+      "alerts": 79,
+      "amount": 46720.983
+    },
+    {
+      "sim_day": 45,
+      "alerts": 45,
+      "amount": 24758.628999999997
+    },
+    {
+      "sim_day": 46,
+      "alerts": 82,
+      "amount": 54886.634999999995
+    },
+    {
+      "sim_day": 47,
+      "alerts": 119,
+      "amount": 93283.28599999993
+    },
+    {
+      "sim_day": 48,
+      "alerts": 122,
+      "amount": 101149.04299999992
+    },
+    {
+      "sim_day": 49,
+      "alerts": 121,
+      "amount": 92908.85799999993
+    },
+    {
+      "sim_day": 50,
+      "alerts": 119,
+      "amount": 93499.95399999998
+    },
+    {
+      "sim_day": 51,
+      "alerts": 96,
+      "amount": 52064.62499999997
+    },
+    {
+      "sim_day": 52,
+      "alerts": 48,
+      "amount": 23319.459000000003
+    },
+    {
+      "sim_day": 53,
+      "alerts": 110,
+      "amount": 100260.29499999998
+    },
+    {
+      "sim_day": 54,
+      "alerts": 119,
+      "amount": 93861.08999999997
+    },
+    {
+      "sim_day": 55,
+      "alerts": 101,
+      "amount": 91449.294
+    },
+    {
+      "sim_day": 56,
+      "alerts": 94,
+      "amount": 68599.03399999994
+    },
+    {
+      "sim_day": 57,
+      "alerts": 127,
+      "amount": 110354.76799999994
+    },
+    {
+      "sim_day": 58,
+      "alerts": 92,
+      "amount": 57009.440999999984
+    },
+    {
+      "sim_day": 59,
+      "alerts": 53,
+      "amount": 29625.124999999996
+    },
+    {
+      "sim_day": 60,
+      "alerts": 101,
+      "amount": 89194.71499999997
+    },
+    {
+      "sim_day": 61,
+      "alerts": 111,
+      "amount": 82070.65999999996
+    },
+    {
+      "sim_day": 62,
+      "alerts": 165,
+      "amount": 148275.40799999997
+    },
+    {
+      "sim_day": 63,
+      "alerts": 153,
+      "amount": 109032.03399999988
+    },
+    {
+      "sim_day": 64,
+      "alerts": 173,
+      "amount": 118086.50899999998
+    },
+    {
+      "sim_day": 65,
+      "alerts": 100,
+      "amount": 60145.038999999975
+    },
+    {
+      "sim_day": 66,
+      "alerts": 48,
+      "amount": 26390.780000000002
+    },
+    {
+      "sim_day": 67,
+      "alerts": 106,
+      "amount": 75538.13899999998
+    },
+    {
+      "sim_day": 68,
+      "alerts": 117,
+      "amount": 101027.29299999998
+    },
+    {
+      "sim_day": 69,
+      "alerts": 113,
+      "amount": 89854.84299999996
+    },
+    {
+      "sim_day": 70,
+      "alerts": 119,
+      "amount": 88309.11899999996
+    },
+    {
+      "sim_day": 71,
+      "alerts": 118,
+      "amount": 88607.37999999996
+    },
+    {
+      "sim_day": 72,
+      "alerts": 104,
+      "amount": 54761.85799999998
+    },
+    {
+      "sim_day": 73,
+      "alerts": 45,
+      "amount": 15019.247
+    },
+    {
+      "sim_day": 74,
+      "alerts": 106,
+      "amount": 92699.042
+    },
+    {
+      "sim_day": 75,
+      "alerts": 105,
+      "amount": 76695.69799999995
+    },
+    {
+      "sim_day": 76,
+      "alerts": 129,
+      "amount": 153364.074
+    },
+    {
+      "sim_day": 77,
+      "alerts": 145,
+      "amount": 115537.77099999995
+    },
+    {
+      "sim_day": 78,
+      "alerts": 150,
+      "amount": 110525.13099999992
+    },
+    {
+      "sim_day": 79,
+      "alerts": 88,
+      "amount": 33741.22100000001
+    },
+    {
+      "sim_day": 80,
+      "alerts": 80,
+      "amount": 36377.613999999994
+    },
+    {
+      "sim_day": 81,
+      "alerts": 96,
+      "amount": 45469.60599999999
+    },
+    {
+      "sim_day": 82,
+      "alerts": 99,
+      "amount": 60927.96999999998
+    },
+    {
+      "sim_day": 83,
+      "alerts": 82,
+      "amount": 51470.66799999999
+    },
+    {
+      "sim_day": 84,
+      "alerts": 165,
+      "amount": 161206.48600000003
+    },
+    {
+      "sim_day": 85,
+      "alerts": 205,
+      "amount": 136753.283
+    },
+    {
+      "sim_day": 86,
+      "alerts": 89,
+      "amount": 55215.81699999999
+    },
+    {
+      "sim_day": 87,
+      "alerts": 84,
+      "amount": 45864.085999999996
+    },
+    {
+      "sim_day": 88,
+      "alerts": 102,
+      "amount": 97368.35699999995
+    },
+    {
+      "sim_day": 89,
+      "alerts": 128,
+      "amount": 114605.88299999996
+    },
+    {
+      "sim_day": 90,
+      "alerts": 149,
+      "amount": 129672.69499999993
+    },
+    {
+      "sim_day": 91,
+      "alerts": 179,
+      "amount": 135412.4609999999
+    },
+    {
+      "sim_day": 92,
+      "alerts": 289,
+      "amount": 208844.4340000002
+    },
+    {
+      "sim_day": 93,
+      "alerts": 157,
+      "amount": 83828.12999999996
+    },
+    {
+      "sim_day": 94,
+      "alerts": 68,
+      "amount": 47165.24100000001
+    },
+    {
+      "sim_day": 95,
+      "alerts": 151,
+      "amount": 96856.63099999995
+    },
+    {
+      "sim_day": 96,
+      "alerts": 84,
+      "amount": 68427.36299999997
+    },
+    {
+      "sim_day": 97,
+      "alerts": 118,
+      "amount": 112803.86699999995
+    },
+    {
+      "sim_day": 98,
+      "alerts": 96,
+      "amount": 76854.53799999997
+    },
+    {
+      "sim_day": 99,
+      "alerts": 111,
+      "amount": 98176.00999999995
+    },
+    {
+      "sim_day": 100,
+      "alerts": 74,
+      "amount": 69664.60999999999
+    },
+    {
+      "sim_day": 101,
+      "alerts": 44,
+      "amount": 32029.960000000006
+    },
+    {
+      "sim_day": 102,
+      "alerts": 101,
+      "amount": 92102.75999999997
+    },
+    {
+      "sim_day": 103,
+      "alerts": 106,
+      "amount": 76351.27800000002
+    },
+    {
+      "sim_day": 104,
+      "alerts": 114,
+      "amount": 90694.836
+    },
+    {
+      "sim_day": 105,
+      "alerts": 115,
+      "amount": 89929.99599999996
+    },
+    {
+      "sim_day": 106,
+      "alerts": 145,
+      "amount": 92329.18400000001
+    },
+    {
+      "sim_day": 107,
+      "alerts": 121,
+      "amount": 44569.834
+    },
+    {
+      "sim_day": 108,
+      "alerts": 54,
+      "amount": 24110.984000000004
+    },
+    {
+      "sim_day": 109,
+      "alerts": 127,
+      "amount": 104448.74799999995
+    },
+    {
+      "sim_day": 110,
+      "alerts": 96,
+      "amount": 69895.57999999997
+    },
+    {
+      "sim_day": 111,
+      "alerts": 102,
+      "amount": 73381.24199999998
+    },
+    {
+      "sim_day": 112,
+      "alerts": 131,
+      "amount": 85395.54799999998
+    },
+    {
+      "sim_day": 113,
+      "alerts": 119,
+      "amount": 73491.90099999995
+    },
+    {
+      "sim_day": 114,
+      "alerts": 71,
+      "amount": 34368.203
+    },
+    {
+      "sim_day": 115,
+      "alerts": 71,
+      "amount": 27097.637999999995
+    },
+    {
+      "sim_day": 116,
+      "alerts": 153,
+      "amount": 85408.47899999996
+    },
+    {
+      "sim_day": 117,
+      "alerts": 157,
+      "amount": 80489.29899999996
+    },
+    {
+      "sim_day": 118,
+      "alerts": 134,
+      "amount": 72639.32899999997
+    },
+    {
+      "sim_day": 119,
+      "alerts": 155,
+      "amount": 84011.36399999996
+    },
+    {
+      "sim_day": 120,
+      "alerts": 174,
+      "amount": 131391.681
+    },
+    {
+      "sim_day": 121,
+      "alerts": 122,
+      "amount": 67378.55499999998
+    },
+    {
+      "sim_day": 122,
+      "alerts": 69,
+      "amount": 25916.972999999994
+    },
+    {
+      "sim_day": 123,
+      "alerts": 111,
+      "amount": 61907.40399999997
+    },
+    {
+      "sim_day": 124,
+      "alerts": 110,
+      "amount": 65485.148999999976
+    },
+    {
+      "sim_day": 125,
+      "alerts": 125,
+      "amount": 90808.2
+    },
+    {
+      "sim_day": 126,
+      "alerts": 91,
+      "amount": 50599.05899999997
+    },
+    {
+      "sim_day": 127,
+      "alerts": 93,
+      "amount": 81755.18
+    },
+    {
+      "sim_day": 128,
+      "alerts": 65,
+      "amount": 29556.264000000003
+    },
+    {
+      "sim_day": 129,
+      "alerts": 34,
+      "amount": 15676.05
+    },
+    {
+      "sim_day": 130,
+      "alerts": 95,
+      "amount": 71095.19599999997
+    },
+    {
+      "sim_day": 131,
+      "alerts": 86,
+      "amount": 56832.92499999998
+    },
+    {
+      "sim_day": 132,
+      "alerts": 81,
+      "amount": 69213.06099999997
+    },
+    {
+      "sim_day": 133,
+      "alerts": 80,
+      "amount": 64227.77899999998
+    },
+    {
+      "sim_day": 134,
+      "alerts": 101,
+      "amount": 79699.18299999996
+    },
+    {
+      "sim_day": 135,
+      "alerts": 70,
+      "amount": 42287.698000000004
+    },
+    {
+      "sim_day": 136,
+      "alerts": 58,
+      "amount": 29166.947
+    },
+    {
+      "sim_day": 137,
+      "alerts": 85,
+      "amount": 74557.74399999996
+    },
+    {
+      "sim_day": 138,
+      "alerts": 82,
+      "amount": 51891.31499999998
+    },
+    {
+      "sim_day": 139,
+      "alerts": 90,
+      "amount": 76226.36899999998
+    },
+    {
+      "sim_day": 140,
+      "alerts": 83,
+      "amount": 60527.408999999985
+    },
+    {
+      "sim_day": 141,
+      "alerts": 101,
+      "amount": 93714.99099999995
+    },
+    {
+      "sim_day": 142,
+      "alerts": 79,
+      "amount": 67918.47199999998
+    },
+    {
+      "sim_day": 143,
+      "alerts": 52,
+      "amount": 35091.667
+    },
+    {
+      "sim_day": 144,
+      "alerts": 86,
+      "amount": 84032.44399999999
+    },
+    {
+      "sim_day": 145,
+      "alerts": 63,
+      "amount": 49819.098999999995
+    },
+    {
+      "sim_day": 146,
+      "alerts": 75,
+      "amount": 64016.446999999986
+    },
+    {
+      "sim_day": 147,
+      "alerts": 91,
+      "amount": 73695.28399999999
+    },
+    {
+      "sim_day": 148,
+      "alerts": 103,
+      "amount": 78529.71599999991
+    },
+    {
+      "sim_day": 149,
+      "alerts": 45,
+      "amount": 35418.829000000005
+    },
+    {
+      "sim_day": 150,
+      "alerts": 42,
+      "amount": 28954.773999999998
+    },
+    {
+      "sim_day": 151,
+      "alerts": 114,
+      "amount": 90518.39199999993
+    },
+    {
+      "sim_day": 152,
+      "alerts": 120,
+      "amount": 93195.398
+    },
+    {
+      "sim_day": 153,
+      "alerts": 86,
+      "amount": 64191.117000000006
+    },
+    {
+      "sim_day": 154,
+      "alerts": 129,
+      "amount": 92665.22499999998
+    },
+    {
+      "sim_day": 155,
+      "alerts": 140,
+      "amount": 99593.51799999992
+    },
+    {
+      "sim_day": 156,
+      "alerts": 76,
+      "amount": 66717.46199999998
+    },
+    {
+      "sim_day": 157,
+      "alerts": 41,
+      "amount": 17986.656000000003
+    },
+    {
+      "sim_day": 158,
+      "alerts": 87,
+      "amount": 73358.81099999997
+    },
+    {
+      "sim_day": 159,
+      "alerts": 93,
+      "amount": 67167.92099999999
+    },
+    {
+      "sim_day": 160,
+      "alerts": 104,
+      "amount": 76320.66699999996
+    },
+    {
+      "sim_day": 161,
+      "alerts": 102,
+      "amount": 72435.32699999996
+    },
+    {
+      "sim_day": 162,
+      "alerts": 130,
+      "amount": 77939.20199999995
+    },
+    {
+      "sim_day": 163,
+      "alerts": 123,
+      "amount": 44698.911999999975
+    },
+    {
+      "sim_day": 164,
+      "alerts": 340,
+      "amount": 60471.70099999998
+    },
+    {
+      "sim_day": 165,
+      "alerts": 145,
+      "amount": 71111.71600000001
+    },
+    {
+      "sim_day": 166,
+      "alerts": 125,
+      "amount": 84653.55799999999
+    },
+    {
+      "sim_day": 167,
+      "alerts": 113,
+      "amount": 75594.66099999996
+    },
+    {
+      "sim_day": 168,
+      "alerts": 112,
+      "amount": 74080.78499999999
+    },
+    {
+      "sim_day": 169,
+      "alerts": 117,
+      "amount": 100957.46399999999
+    },
+    {
+      "sim_day": 170,
+      "alerts": 84,
+      "amount": 44401.057
+    },
+    {
+      "sim_day": 171,
+      "alerts": 665,
+      "amount": 93329.23599999999
+    },
+    {
+      "sim_day": 172,
+      "alerts": 369,
+      "amount": 108587.66799999995
+    },
+    {
+      "sim_day": 173,
+      "alerts": 87,
+      "amount": 63603.15099999998
+    },
+    {
+      "sim_day": 174,
+      "alerts": 107,
+      "amount": 64272.00499999997
+    },
+    {
+      "sim_day": 175,
+      "alerts": 83,
+      "amount": 67006.29399999998
+    },
+    {
+      "sim_day": 176,
+      "alerts": 127,
+      "amount": 95251.00999999997
+    },
+    {
+      "sim_day": 177,
+      "alerts": 64,
+      "amount": 33862.056
+    },
+    {
+      "sim_day": 178,
+      "alerts": 48,
+      "amount": 27246.128000000008
+    },
+    {
+      "sim_day": 179,
+      "alerts": 41,
+      "amount": 27142.926000000003
+    },
+    {
+      "sim_day": 180,
+      "alerts": 69,
+      "amount": 57433.03199999998
+    },
+    {
+      "sim_day": 181,
+      "alerts": 93,
+      "amount": 85979.08899999996
+    },
+    {
+      "sim_day": 182,
+      "alerts": 118,
+      "amount": 100727.98899999997
+    }
+  ],
+  "report_day171": {
+    "alerts": 665,
+    "total_amount": "93329.24",
+    "p1_top50_amount": "25997.55"
+  },
+  "sensitivity": {
+    "baseline": 23688,
+    "r1_threshold_7": 24596,
+    "r1_threshold_9": 22951,
+    "r2_threshold_2_5": 24871,
+    "r5_threshold_400": 25612,
+    "r5_threshold_500": 21411
+  },
+  "volume_reconciliation": {
+    "test_days": 44,
+    "days_where_saved_actual_differs_from_database": 0,
+    "mae_recomputed": 41.507545449898046,
+    "mae_reported": 41.507545449898046,
+    "same_as_yesterday_mae_recomputed": 56.77272727272727,
+    "interval_coverage_recomputed": 0.8409090909090909,
+    "overflow_days_all_182": {
+      "50": 171,
+      "100": 114,
+      "150": 44
+    }
+  },
+  "fraud_model_summary": {
+    "pr_auc": 0.3826403641053112,
+    "expected_calibration_error": 0.0031369434788876696,
+    "capture_at_50": {
+      "P4": 0.3272915783037483,
+      "P3": 0.20909625601777293,
+      "P2": 0.15515738832407514,
+      "P1": 0.1971043074896037,
+      "P0": 0.019945096700604452
+    }
+  }
+}

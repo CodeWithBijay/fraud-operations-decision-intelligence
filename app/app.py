@@ -1791,6 +1791,8 @@ elif page == "Ask FraudOps":
 
     def rag_search(question, k=4):
         chunks, vec, mat = rag_index()
+        words = re.findall(r"[\w-]+", question.lower())
+        question = question + " " + " ".join(w[:-1] for w in words if len(w) > 3 and w.endswith("s"))
         sims = linear_kernel(vec.transform([question]), mat).ravel()
         return [(chunks[i], float(sims[i])) for i in sims.argsort()[::-1][:k] if sims[i] > 0.05]
 

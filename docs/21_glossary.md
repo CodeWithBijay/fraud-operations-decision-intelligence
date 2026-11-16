@@ -4,8 +4,8 @@ Short explanations of the terms used in the FraudOps app, written for a Fraud Op
 without an analytics background. Numbers come from the Week 11 final test (`docs/20_week11_evaluation_report.md`).
 
 ## Alert
-A transaction flagged by at least one of six label-free alert rules: high 24-hour velocity, amount spike, rapid
-repeat, new customer, large amount, and new device. An alert is a reason to look, not proof of fraud.
+A transaction flagged because at least two of six label-free alert rules fired at once: high 24-hour velocity, amount spike, rapid
+repeat, new customer, large amount, and new device. A transaction that trips only one rule is not an alert. An alert is a reason to look, not proof of fraud.
 
 ## Review capacity
 How many alerts the analyst team can review in one day. The Fraud Ops Lead sets it; the default is 50. Alerts
@@ -22,6 +22,12 @@ fraud. The default queue policy (P4) reviews the alerts with the highest expecte
 ## Queue policies (P0 to P4)
 Ways of ordering the alert queue. P0 is random, P1 is largest amount first, P2 is the alert-rule score, P3 is the
 model's fraud probability, and P4 is expected exposure (probability times amount). P4 performed best in testing.
+
+## KPIs (key performance indicators)
+The two measures the project uses to judge whether the tool helps the Fraud Ops Lead. KPI 1 is fraud value captured
+at capacity: the share of a day's real fraud dollars inside the alerts the team reviews (32.7% at 50 reviews a day
+in the final test). KPI 2 is daily alert overflow: alerts above review capacity, forecast by the volume model so the
+Lead can plan staff.
 
 ## KPI 1: fraud value captured at capacity
 The share of a day's real fraud dollars that falls inside the alerts the team reviews. In the final test, reviewing
