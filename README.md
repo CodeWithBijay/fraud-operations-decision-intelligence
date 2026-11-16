@@ -5,7 +5,7 @@
 
 | Deliverable | Where |
 |---|---|
-| **Validation matrix** (33 tests, course template) | [`validation/Week12_Validation_Matrix.xlsx`](validation/Week12_Validation_Matrix.xlsx) |
+| **Validation matrix** (39 tests: 23 Pass, 9 Partial, 6 Fail, 1 Not tested; course template) | [`validation/Week12_Validation_Matrix.xlsx`](validation/Week12_Validation_Matrix.xlsx) |
 | **Validation memo** (2–3 pages) | [`docs/23_validation_memo.md`](docs/23_validation_memo.md) |
 | **Decision requirements** R1–R5 | [`docs/22_decision_requirements.md`](docs/22_decision_requirements.md) |
 | **Evidence folder** (labelled E01–E05, raw results) | [`evidence/`](evidence/) · index: [`evidence/README.md`](evidence/README.md) |
@@ -17,7 +17,8 @@
 | Reproducible validation scripts | [`scripts/validate_week12.py`](scripts/validate_week12.py) · [`scripts/smoke_test_app.py`](scripts/smoke_test_app.py) |
 | Group contributions | [`docs/18_contributions.md`](docs/18_contributions.md) |
 | Plain-language glossary | [`docs/21_glossary.md`](docs/21_glossary.md) |
-| Videos | 7-minute demo: [link] · 12-minute matrix walkthrough: [link] |
+| 🎬 Video: 7-minute demo | [Watch on Google Drive (link added Nov 16)](#) |
+| 🎬 Video: 12-minute validation-matrix walkthrough | [Watch on Google Drive (link added Nov 16)](#) |
 | Live app | [https://fraud-operations-decision-intelligence-group4.streamlit.app](https://fraud-operations-decision-intelligence-group4.streamlit.app) (sign in with the account provided in the Canvas submission) |
 
 **Decision-maker:** Fraud Operations Lead (with Fraud Analysts). **KPIs (unchanged):** KPI 1, fraud value captured
@@ -294,7 +295,7 @@ The raw IEEE-CIS files are not redistributed, because the Kaggle competition's r
 
 ## 11. Next steps
 
-Complete the user test and make the change it points to; then, for Week 12, build the validation matrix, the Excel template and the decision memo. Further work: segment-specific modeling for product W, same-day early signals for volume spikes, and drift monitoring.
+Make the changes found in the user test (`evidence/E04`) and retest; fix the validation failures listed in the memo (product W, volume spikes, the amount z-score defect). Further work: segment-specific modeling for product W, same-day early signals for volume spikes, and drift monitoring.
 
 ---
 
