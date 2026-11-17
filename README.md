@@ -18,7 +18,7 @@
 | Group contributions | [`docs/18_contributions.md`](docs/18_contributions.md) |
 | Plain-language glossary | [`docs/21_glossary.md`](docs/21_glossary.md) |
 | 🎬 Video: 7-minute demo | [Watch on Google Drive](https://drive.google.com/file/d/1GL1Y6nOemQGpNW2aPtvbdsoZeLEg3Urc/view?usp=sharing) |
-| 🎬 Video: 12-minute validation-matrix walkthrough | [Watch on Google Drive (link added Nov 16)](#) |
+| 🎬 Video: 12-minute validation-matrix walkthrough | [Watch on Google Drive](https://drive.google.com/file/d/1T4L_dy9xwG0fI_LElj0m-tzTo9gOOq79/view?usp=sharing) |
 | Live app | [https://fraud-operations-decision-intelligence-group4.streamlit.app](https://fraud-operations-decision-intelligence-group4.streamlit.app) (sign in with the account provided in the Canvas submission) |
 
 **Decision-maker:** Fraud Operations Lead (with Fraud Analysts). **KPIs (unchanged):** KPI 1, fraud value captured
